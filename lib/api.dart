@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Eine AWTRIX-NG-Uhr im Netzwerk (per IP/Hostname).
 class AwtrixDevice {
-  String host; // IP oder Hostname (z. B. 192.168.1.50 oder awtrixng-a1b2c3.local)
+  String host; // IP oder Hostname (z. B. 192.168.1.111 oder awtrixng-a1b2c3.local)
   int port;
   String name;
 
@@ -45,11 +45,31 @@ class AwtrixApi {
     }
   }
 
+  dynamic _json(http.Response r) {
+    if (r.body.isEmpty) return null;
+    try {
+      return jsonDecode(r.body);
+    } catch (_) {
+      return null;
+    }
+  }
+
   // --- Notifications ---
-  Future<http.Response> notify(String text, {List<int>? color}) =>
+  Future<http.Response> notify(
+    String text, {
+    List<int>? color,
+    String? icon,
+    int? durationS,
+    bool? hold,
+    bool? rainbow,
+  }) =>
       _send('POST', '/notifications', body: {
         'text': text,
         if (color != null) 'textColor': color,
+        if (icon != null && icon.isNotEmpty) 'icon': icon,
+        if (durationS != null) 'durationMs': durationS * 1000,
+        if (hold != null) 'hold': hold,
+        if (rainbow != null && rainbow) 'rainbow': true,
       });
 
   Future<http.Response> dismiss() => _send('DELETE', '/notifications/active');
@@ -57,6 +77,20 @@ class AwtrixApi {
   // --- Apps ---
   Future<http.Response> nextApp() => _send('POST', '/apps/next');
   Future<http.Response> prevApp() => _send('POST', '/apps/previous');
+  Future<http.Response> switchApp(String name) =>
+      _send('PUT', '/apps/active', body: {'name': name});
+  Future<http.Response> deleteApp(String name) => _send('DELETE', '/apps/$name');
+  Future<http.Response> reorderApps(List<String> order, List<String> disabled) =>
+      _send('PUT', '/apps/order', body: {'order': order, 'disabled': disabled});
+
+  Future<List<Map<String, dynamic>>> getApps() async {
+    final d = _json(await _send('GET', '/apps'));
+    final list = d is List ? d : (d is Map && d['apps'] is List ? d['apps'] : const []);
+    return list
+        .whereType<Map>()
+        .map((e) => e.cast<String, dynamic>())
+        .toList();
+  }
 
   // --- Display / Power / Overlay ---
   Future<http.Response> power(bool on) =>
@@ -77,7 +111,7 @@ class AwtrixApi {
   Future<http.Response> indicatorOff(int id) =>
       _send('DELETE', '/indicators/$id');
 
-  // --- Settings (40 Stück) ---
+  // --- Settings (alle) ---
   Future<http.Response> setBrightness(int b) =>
       _send('PATCH', '/settings', body: {'brightness': b});
   Future<http.Response> autoBrightness(bool on) =>
@@ -85,20 +119,52 @@ class AwtrixApi {
   Future<http.Response> patchSettings(Map<String, dynamic> s) =>
       _send('PATCH', '/settings', body: s);
   Future<Map<String, dynamic>> getSettings() async {
-    final r = await _send('GET', '/settings');
-    return (jsonDecode(r.body) as Map).cast<String, dynamic>();
+    final d = _json(await _send('GET', '/settings'));
+    return d is Map ? d.cast<String, dynamic>() : {};
   }
 
-  // --- Device ---
+  // --- Audio ---
+  Future<List<String>> getMelodies() async {
+    final d = _json(await _send('GET', '/audio/melodies'));
+    final list = d is List
+        ? d
+        : (d is Map && d['melodies'] is List ? d['melodies'] : const []);
+    return list.map((e) => e is Map ? '${e['name']}' : '$e').toList();
+  }
+
+  Future<http.Response> playMelody(String name) =>
+      _send('POST', '/audio/play', body: {'name': name});
+  Future<http.Response> stopAudio() => _send('POST', '/audio/stop');
+
+  // --- Sounds / RTTTL direkt ---
+  Future<http.Response> playRtttl(String rtttl) =>
+      _send('POST', '/audio/play', body: {'rtttl': rtttl});
+
+  // --- Device / System ---
   Future<http.Response> reboot() => _send('POST', '/device/reboot');
+  Future<http.Response> factoryReset() =>
+      _send('POST', '/device/factory-reset');
+
   Future<Map<String, dynamic>> getDevice() async {
-    final r = await _send('GET', '/device');
-    return (jsonDecode(r.body) as Map).cast<String, dynamic>();
+    final d = _json(await _send('GET', '/device'));
+    return d is Map ? d.cast<String, dynamic>() : {};
+  }
+
+  Future<Map<String, dynamic>> getSystem() async {
+    final d = _json(await _send('GET', '/system'));
+    return d is Map ? d.cast<String, dynamic>() : {};
+  }
+
+  Future<http.Response> patchSystem(Map<String, dynamic> s) =>
+      _send('PUT', '/system', body: s);
+
+  Future<Map<String, dynamic>> getCapabilities() async {
+    final d = _json(await _send('GET', '/capabilities'));
+    return d is Map ? d.cast<String, dynamic>() : {};
   }
 }
 
 /// UDP-Broadcast-Discovery: sendet FIND_AWTRIXNG an :4210, lauscht auf :4211.
-/// Die Antwort ist HOSTNAME oder HOSTNAME:PORT, Absender-IP = Geräteadresse.
 Future<List<AwtrixDevice>> discoverAwtrix(
     {Duration timeout = const Duration(seconds: 3)}) async {
   final found = <String, AwtrixDevice>{};
@@ -112,7 +178,7 @@ Future<List<AwtrixDevice>> discoverAwtrix(
       final dg = sock!.receive();
       if (dg == null) return;
       final msg = utf8.decode(dg.data, allowMalformed: true).trim();
-      if (msg.isEmpty || msg.startsWith('FIND_')) return; // eigene Anfrage ignorieren
+      if (msg.isEmpty || msg.startsWith('FIND_')) return;
       final ip = dg.address.address;
       final parts = msg.split(':');
       final name = parts[0];
@@ -123,7 +189,6 @@ Future<List<AwtrixDevice>> discoverAwtrix(
     final data = utf8.encode('FIND_AWTRIXNG');
     final bcast = InternetAddress('255.255.255.255');
     sock.send(data, bcast, 4210);
-    // Zweiter Versuch, falls das erste Paket verloren geht.
     Future.delayed(const Duration(milliseconds: 500), () {
       try {
         sock?.send(data, bcast, 4210);
@@ -132,14 +197,14 @@ Future<List<AwtrixDevice>> discoverAwtrix(
 
     await Future.delayed(timeout);
   } catch (_) {
-    // Discovery fehlgeschlagen -> leere Liste, Nutzer kann per IP hinzufügen.
+    // Discovery fehlgeschlagen -> Nutzer kann per IP hinzufuegen.
   } finally {
     sock?.close();
   }
   return found.values.toList();
 }
 
-/// Persistenz der bekannten Uhren (shared_preferences).
+/// Persistenz der bekannten Uhren.
 class DeviceStore {
   static const _key = 'awtrix_devices';
 

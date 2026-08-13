@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'api.dart';
-import 'control_page.dart';
+import 'device_shell.dart';
+import 'main.dart' show ThemeToggleButton;
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -43,7 +44,7 @@ class _HomePageState extends State<HomePage> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(found.isEmpty
           ? 'Keine Uhr gefunden – per IP hinzufügen (+)'
-          : '${found.length} Uhr(en) gefunden, $added neu'),
+          : '${found.length} gefunden, $added neu'),
     ));
   }
 
@@ -62,7 +63,7 @@ class _HomePageState extends State<HomePage> {
               autofocus: true,
               decoration: const InputDecoration(
                 labelText: 'IP oder Hostname',
-                hintText: '192.168.1.50  oder  awtrixng-a1b2c3.local',
+                hintText: '192.168.1.111',
               ),
             ),
             TextField(
@@ -90,16 +91,11 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
         title: const Text('AWTRIX NG Remote'),
-        actions: [
-          IconButton(
-            tooltip: 'Per IP hinzufügen',
-            onPressed: _addByIp,
-            icon: const Icon(Icons.add),
-          ),
-        ],
+        actions: const [ThemeToggleButton()],
       ),
       body: _devices.isEmpty
           ? Padding(
@@ -107,51 +103,74 @@ class _HomePageState extends State<HomePage> {
               child: Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    Icon(Icons.watch, size: 64),
-                    SizedBox(height: 12),
-                    Text('Noch keine Uhr hinzugefügt.',
+                  children: [
+                    Icon(Icons.watch, size: 72, color: cs.primary),
+                    const SizedBox(height: 12),
+                    const Text('Noch keine Uhr hinzugefügt.',
                         style: TextStyle(fontSize: 18)),
-                    SizedBox(height: 6),
-                    Text('Tippe unten auf „Uhr suchen" (gleiches WLAN) '
-                        'oder oben auf + für eine IP.',
-                        textAlign: TextAlign.center),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Tippe unten auf „Uhr suchen" (gleiches WLAN) '
+                      'oder oben auf + für eine IP.',
+                      textAlign: TextAlign.center,
+                    ),
                   ],
                 ),
               ),
             )
-          : ListView.builder(
-              itemCount: _devices.length,
-              itemBuilder: (_, i) {
-                final d = _devices[i];
-                return ListTile(
-                  leading: const Icon(Icons.watch, size: 32),
-                  title: Text(d.name),
-                  subtitle: Text('${d.host}${d.port == 80 ? '' : ':${d.port}'}'),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => ControlPage(device: d)),
+          : ListView(
+              padding: const EdgeInsets.all(8),
+              children: [
+                for (var i = 0; i < _devices.length; i++)
+                  Card(
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: cs.primaryContainer,
+                        child: Icon(Icons.watch, color: cs.onPrimaryContainer),
+                      ),
+                      title: Text(_devices[i].name,
+                          style: const TextStyle(fontWeight: FontWeight.w600)),
+                      subtitle: Text(
+                          '${_devices[i].host}${_devices[i].port == 80 ? '' : ':${_devices[i].port}'}'),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) =>
+                                DeviceShell(device: _devices[i])),
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete_outline),
+                        onPressed: () async {
+                          _devices.removeAt(i);
+                          await _persist();
+                          setState(() {});
+                        },
+                      ),
+                    ),
                   ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete_outline),
-                    onPressed: () async {
-                      _devices.removeAt(i);
-                      await _persist();
-                      setState(() {});
-                    },
-                  ),
-                );
-              },
+              ],
             ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _scanning ? null : _discover,
-        icon: _scanning
-            ? const SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2))
-            : const Icon(Icons.wifi_find),
-        label: Text(_scanning ? 'Suche…' : 'Uhr suchen'),
+      floatingActionButton: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FloatingActionButton.small(
+            heroTag: 'ip',
+            onPressed: _addByIp,
+            child: const Icon(Icons.add),
+          ),
+          const SizedBox(width: 12),
+          FloatingActionButton.extended(
+            heroTag: 'scan',
+            onPressed: _scanning ? null : _discover,
+            icon: _scanning
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2))
+                : const Icon(Icons.wifi_find),
+            label: Text(_scanning ? 'Suche…' : 'Uhr suchen'),
+          ),
+        ],
       ),
     );
   }
