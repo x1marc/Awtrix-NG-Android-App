@@ -1,0 +1,63 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Flutter-Version
+        run: flutter --version
+
+      # Android-Projektgeruest erzeugen (android/ etc.) - Code liegt schon in lib/.
+      - name: Android-Geruest erzeugen
+        run: flutter create --platforms=android --project-name awtrix_ng_remote --org com.x1marc .
+
+      # flutter create ueberschreibt pubspec.yaml + lib/main.dart -> eigene Dateien zuruecksetzen.
+      - name: Eigene lib/pubspec wiederherstellen
+        run: git checkout -- pubspec.yaml lib
+
+      - name: INTERNET-Berechtigung sicherstellen
+        run: |
+          M=android/app/src/main/AndroidManifest.xml
+          grep -q 'android.permission.INTERNET' "$M" || \
+            sed -i 's#<application#<uses-permission android:name="android.permission.INTERNET"/>\n    <application#' "$M"
+          echo "----- AndroidManifest.xml -----"
+          cat "$M"
+
+      - name: Abhaengigkeiten holen
+        run: flutter pub get
+
+      - name: APK bauen (release)
+        run: flutter build apk --release
+
+      - name: APK als Artefakt hochladen
+        uses: actions/upload-artifact@v4
+        with:
+          name: awtrix-ng-remote-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: APK als Release "latest" veroeffentlichen
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Neueste APK
+          body: Automatisch gebaute APK. Auf dem Handy installieren (Quelle "Unbekannt" erlauben).
+          files: build/app/outputs/flutter-apk/app-release.apk

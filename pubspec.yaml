@@ -1,0 +1,16 @@
+name: awtrix_ng_remote
+description: Lokale Fernbedienung für AWTRIX NG (Auto-Discovery + volle HTTP-API).
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.2.0
+  shared_preferences: ^2.2.0
+
+flutter:
+  uses-material-design: true
