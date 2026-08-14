@@ -25,6 +25,14 @@ class AwtrixDevice {
       );
 }
 
+/// Momentaufnahme des Uhr-Displays (Pixel als gepackte 0xRRGGBB-Werte).
+class ScreenData {
+  final int width;
+  final int height;
+  final List<int> pixels;
+  ScreenData(this.width, this.height, this.pixels);
+}
+
 /// HTTP-API-Client (AWTRIX NG /api/v1/...).
 class AwtrixApi {
   final AwtrixDevice device;
@@ -113,6 +121,23 @@ class AwtrixApi {
       _send('PUT', '/display/moodlight',
           body: {'color': color, 'brightness': brightness});
   Future<http.Response> moodlightOff() => _send('DELETE', '/display/moodlight');
+
+  /// Aktuelles Displaybild (Pixel). null, wenn nicht unterstützt/erreichbar.
+  Future<ScreenData?> getScreen() async {
+    try {
+      final d = _json(await _send('GET', '/display/screen'));
+      if (d is Map && d['pixels'] is List) {
+        final w = (d['width'] as num?)?.toInt() ?? 32;
+        final h = (d['height'] as num?)?.toInt() ?? 8;
+        final px = <int>[];
+        for (final e in (d['pixels'] as List)) {
+          px.add(e is num ? e.toInt() : 0);
+        }
+        return ScreenData(w, h, px);
+      }
+    } catch (_) {}
+    return null;
+  }
 
   // --- Indicators (1-3) ---
   Future<http.Response> indicator(int id, List<int> color, {int blinkMs = 0}) =>

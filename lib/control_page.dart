@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 
 import 'api.dart';
 import 'color_picker.dart';
+import 'matrix_preview.dart';
 import 'widgets.dart';
 
 class ControlPage extends StatefulWidget {
@@ -39,6 +40,7 @@ class _ControlPageState extends State<ControlPage> {
       padding: const EdgeInsets.symmetric(vertical: 6),
       children: [
         if (_busy) const LinearProgressIndicator(minHeight: 2),
+        MatrixPreview(api: api),
 
         // --- Benachrichtigung ---
         SectionCard(
