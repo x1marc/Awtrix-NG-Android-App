@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'api.dart';
 import 'device_shell.dart';
 import 'main.dart' show ThemeToggleButton;
+import 'support.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -97,7 +98,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('AWTRIX NG Remote'),
-        actions: const [ThemeToggleButton()],
+        actions: const [BmcButton(), ThemeToggleButton()],
       ),
       body: _devices.isEmpty
           ? Padding(
@@ -150,6 +151,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                   ),
+                const BmcCard(),
               ],
             ),
       floatingActionButton: Row(

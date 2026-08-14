@@ -34,11 +34,13 @@ jobs:
       - name: Eigene lib/pubspec wiederherstellen
         run: git checkout -- pubspec.yaml lib
 
-      - name: INTERNET-Berechtigung sicherstellen
+      - name: Manifest anpassen (INTERNET + https-queries fuer url_launcher)
         run: |
           M=android/app/src/main/AndroidManifest.xml
           grep -q 'android.permission.INTERNET' "$M" || \
             sed -i 's#<application#<uses-permission android:name="android.permission.INTERNET"/>\n    <application#' "$M"
+          grep -q '<queries>' "$M" || \
+            sed -i 's#<application#<queries><intent><action android:name="android.intent.action.VIEW"/><data android:scheme="https"/></intent></queries>\n    <application#' "$M"
           echo "----- AndroidManifest.xml -----"
           cat "$M"
 
