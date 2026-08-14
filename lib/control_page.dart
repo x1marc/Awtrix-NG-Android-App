@@ -19,6 +19,7 @@ class _ControlPageState extends State<ControlPage> {
   final _textC = TextEditingController(text: 'Hallo!');
   List<int> _notifyColor = const [255, 255, 255];
   double _brightness = 120;
+  double _moodBright = 120;
   String _overlay = 'off';
   bool _busy = false;
 
@@ -193,6 +194,20 @@ class _ControlPageState extends State<ControlPage> {
           title: 'Stimmungslicht',
           icon: Icons.lightbulb,
           children: [
+            Row(children: [
+              const Icon(Icons.brightness_6, size: 20),
+              Expanded(
+                child: Slider(
+                  value: _moodBright,
+                  min: 0,
+                  max: 255,
+                  divisions: 51,
+                  label: _moodBright.round().toString(),
+                  onChanged: (v) => setState(() => _moodBright = v),
+                ),
+              ),
+              SizedBox(width: 34, child: Text(_moodBright.round().toString())),
+            ]),
             Wrap(
               spacing: 6,
               runSpacing: 6,
@@ -204,8 +219,10 @@ class _ControlPageState extends State<ControlPage> {
                     label: Text(e.key),
                     onPressed: _busy
                         ? null
-                        : () =>
-                            _run(() => api.moodlight(e.value), 'Moodlight'),
+                        : () => _run(
+                            () => api.moodlight(e.value,
+                                brightness: _moodBright.round()),
+                            'Moodlight'),
                   ),
                 ActionChip(
                   avatar: const Icon(Icons.palette, size: 18),
@@ -215,7 +232,10 @@ class _ControlPageState extends State<ControlPage> {
                       : () async {
                           final hex = await pickColor(context);
                           if (hex != null) {
-                            _run(() => api.moodlight(rgbFromHex(hex)), 'Moodlight');
+                            _run(
+                                () => api.moodlight(rgbFromHex(hex),
+                                    brightness: _moodBright.round()),
+                                'Moodlight');
                           }
                         },
                 ),
@@ -239,19 +259,32 @@ class _ControlPageState extends State<ControlPage> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 6),
                 child: Row(children: [
-                  SizedBox(width: 46, child: Text('LED $id')),
-                  for (final c in kColors.values.take(4))
+                  SizedBox(width: 44, child: Text('LED $id')),
+                  for (final c in kColors.values.take(3))
                     Padding(
-                      padding: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.only(right: 6),
                       child: InkWell(
                         customBorder: const CircleBorder(),
                         onTap: _busy
                             ? null
                             : () =>
                                 _run(() => api.indicator(id, c), 'LED $id'),
-                        child: CircleAvatar(radius: 13, backgroundColor: rgb(c)),
+                        child: CircleAvatar(radius: 12, backgroundColor: rgb(c)),
                       ),
                     ),
+                  IconButton(
+                    tooltip: 'Eigene Farbe',
+                    icon: const Icon(Icons.palette, size: 18),
+                    onPressed: _busy
+                        ? null
+                        : () async {
+                            final hex = await pickColor(context);
+                            if (hex != null) {
+                              _run(() => api.indicator(id, rgbFromHex(hex)),
+                                  'LED $id');
+                            }
+                          },
+                  ),
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.close, size: 18),
