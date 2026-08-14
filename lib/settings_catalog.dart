@@ -203,6 +203,12 @@ const List<SMeta> kSettingsCatalog = [
       group: 'Datum', kind: SKind.toggle),
   SMeta('dateColor', 'Datums-Farbe',
       group: 'Datum', kind: SKind.colorNullable, help: 'Leer = Standard-Textfarbe.'),
+  SMeta('calendarHeaderColor', 'Kalender – Kopfzeile',
+      group: 'Datum', kind: SKind.color),
+  SMeta('calendarTextColor', 'Kalender – Tageszahl',
+      group: 'Datum', kind: SKind.color),
+  SMeta('calendarBodyColor', 'Kalender – Hintergrund',
+      group: 'Datum', kind: SKind.color),
 
   // --- Wochentagsleiste ---
   SMeta('weekdayBar.show', 'Wochentagsleiste anzeigen',

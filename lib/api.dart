@@ -84,12 +84,22 @@ class AwtrixApi {
       _send('PUT', '/apps/order', body: {'order': order, 'disabled': disabled});
 
   Future<List<Map<String, dynamic>>> getApps() async {
-    final d = _json(await _send('GET', '/apps'));
-    final list = d is List ? d : (d is Map && d['apps'] is List ? d['apps'] : const []);
-    return list
-        .whereType<Map>()
-        .map((e) => e.cast<String, dynamic>())
-        .toList();
+    try {
+      final d = _json(await _send('GET', '/apps'));
+      final List list = d is List
+          ? d
+          : d is Map && d['apps'] is List
+              ? d['apps'] as List
+              : d is Map
+                  ? d.keys.map((k) => {'name': '$k'}).toList()
+                  : const [];
+      return list
+          .whereType<Map>()
+          .map((e) => e.map((k, val) => MapEntry('$k', val)))
+          .toList();
+    } catch (_) {
+      return [];
+    }
   }
 
   // --- Display / Power / Overlay ---

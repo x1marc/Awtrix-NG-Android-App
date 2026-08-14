@@ -5,6 +5,16 @@ import 'color_picker.dart';
 import 'settings_catalog.dart';
 import 'widgets.dart';
 
+/// Kompakte, umrandete (nicht gefüllte) Eingabe-Dekoration – verhindert die
+/// grauen Vollflächen-Boxen des Material-3-Standardstils.
+InputDecoration denseDeco({String? suffix}) => InputDecoration(
+      isDense: true,
+      filled: false,
+      suffixText: suffix,
+      border: const OutlineInputBorder(),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+    );
+
 class SettingsPage extends StatefulWidget {
   final AwtrixDevice device;
   const SettingsPage({super.key, required this.device});
@@ -168,14 +178,15 @@ class _SettingsPageState extends State<SettingsPage> {
           title: Text(meta.label),
           subtitle: meta.help == null ? null : Text(meta.help!),
           trailing: SizedBox(
-            width: 110,
+            width: 108,
+            height: 46,
             child: TextFormField(
               key: ValueKey('$key-$_gen'),
               initialValue: '${v ?? ''}',
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true, signed: true),
               textAlign: TextAlign.end,
-              decoration: InputDecoration(isDense: true, suffixText: meta.unit),
+              decoration: denseDeco(suffix: meta.unit),
               onChanged: (t) {
                 final isInt = _raw(key) is int;
                 final p = isInt ? int.tryParse(t) : num.tryParse(t);
@@ -189,20 +200,25 @@ class _SettingsPageState extends State<SettingsPage> {
       case SKind.colorNullable:
         return _colorRow(key, meta, nullable: true);
       case SKind.text:
-        return ListTile(
-          title: Text(meta.label),
-          subtitle: Column(
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text(meta.label, style: const TextStyle(fontSize: 16)),
               if (meta.help != null) ...[
+                const SizedBox(height: 2),
                 Text(meta.help!, style: Theme.of(context).textTheme.bodySmall),
-                const SizedBox(height: 4),
               ],
-              TextFormField(
-                key: ValueKey('$key-$_gen'),
-                initialValue: '${v ?? ''}',
-                decoration: const InputDecoration(isDense: true),
-                onChanged: (t) => _set(key, t),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 46,
+                child: TextFormField(
+                  key: ValueKey('$key-$_gen'),
+                  initialValue: '${v ?? ''}',
+                  decoration: denseDeco(),
+                  onChanged: (t) => _set(key, t),
+                ),
               ),
             ],
           ),
@@ -261,16 +277,16 @@ class _SettingsPageState extends State<SettingsPage> {
     if (v is num) {
       return ListTile(
         title: Text(prettifyKey(key)),
-        subtitle: Text(key, style: Theme.of(context).textTheme.bodySmall),
         trailing: SizedBox(
-          width: 110,
+          width: 108,
+          height: 46,
           child: TextFormField(
             key: ValueKey('$key-$_gen'),
             initialValue: v.toString(),
             keyboardType:
                 const TextInputType.numberWithOptions(decimal: true, signed: true),
             textAlign: TextAlign.end,
-            decoration: const InputDecoration(isDense: true),
+            decoration: denseDeco(),
             onChanged: (t) {
               final p = v is int ? int.tryParse(t) : num.tryParse(t);
               if (p != null) _set(key, p);
@@ -280,13 +296,23 @@ class _SettingsPageState extends State<SettingsPage> {
       );
     }
     if (v is String) {
-      return ListTile(
-        title: Text(prettifyKey(key)),
-        subtitle: TextFormField(
-          key: ValueKey('$key-$_gen'),
-          initialValue: v,
-          decoration: InputDecoration(isDense: true, helperText: key),
-          onChanged: (t) => _set(key, t),
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(prettifyKey(key), style: const TextStyle(fontSize: 16)),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 46,
+              child: TextFormField(
+                key: ValueKey('$key-$_gen'),
+                initialValue: v,
+                decoration: denseDeco(),
+                onChanged: (t) => _set(key, t),
+              ),
+            ),
+          ],
         ),
       );
     }

@@ -39,7 +39,6 @@ class _ControlPageState extends State<ControlPage> {
       padding: const EdgeInsets.symmetric(vertical: 6),
       children: [
         if (_busy) const LinearProgressIndicator(minHeight: 2),
-        MatrixPreview(baseUrl: widget.device.base),
 
         // --- Benachrichtigung ---
         SectionCard(
