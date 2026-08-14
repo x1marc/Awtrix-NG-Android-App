@@ -175,8 +175,10 @@ class AwtrixApi {
 }
 
 /// UDP-Broadcast-Discovery: sendet FIND_AWTRIXNG an :4210, lauscht auf :4211.
+/// Sendet an 255.255.255.255 UND an die subnetz-gerichteten Broadcasts aller
+/// lokalen Interfaces (robust, wenn Mobilfunk + WLAN gleichzeitig aktiv sind).
 Future<List<AwtrixDevice>> discoverAwtrix(
-    {Duration timeout = const Duration(seconds: 3)}) async {
+    {Duration timeout = const Duration(seconds: 4)}) async {
   final found = <String, AwtrixDevice>{};
   RawDatagramSocket? sock;
   try {
@@ -196,14 +198,31 @@ Future<List<AwtrixDevice>> discoverAwtrix(
       found[ip] = AwtrixDevice(host: ip, port: port, name: name);
     });
 
+    // Ziel-Broadcast-Adressen einsammeln.
+    final targets = <String>{'255.255.255.255'};
+    try {
+      final ifaces = await NetworkInterface.list(
+          type: InternetAddressType.IPv4, includeLoopback: false);
+      for (final ni in ifaces) {
+        for (final a in ni.addresses) {
+          final p = a.address.split('.');
+          if (p.length == 4) targets.add('${p[0]}.${p[1]}.${p[2]}.255');
+        }
+      }
+    } catch (_) {}
+
     final data = utf8.encode('FIND_AWTRIXNG');
-    final bcast = InternetAddress('255.255.255.255');
-    sock.send(data, bcast, 4210);
-    Future.delayed(const Duration(milliseconds: 500), () {
-      try {
-        sock?.send(data, bcast, 4210);
-      } catch (_) {}
-    });
+    void blast() {
+      for (final t in targets) {
+        try {
+          sock?.send(data, InternetAddress(t), 4210);
+        } catch (_) {}
+      }
+    }
+
+    blast();
+    Future.delayed(const Duration(milliseconds: 500), blast);
+    Future.delayed(const Duration(milliseconds: 1300), blast);
 
     await Future.delayed(timeout);
   } catch (_) {

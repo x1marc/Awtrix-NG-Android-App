@@ -44,7 +44,9 @@ class _HomePageState extends State<HomePage> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(found.isEmpty
           ? 'Keine Uhr gefunden – per IP hinzufügen (+)'
-          : '${found.length} gefunden, $added neu'),
+          : added > 0
+              ? '${found.length} gefunden, $added neu hinzugefügt'
+              : '${found.length} gefunden (schon in der Liste)'),
     ));
   }
 
