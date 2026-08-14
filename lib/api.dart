@@ -90,6 +90,8 @@ class AwtrixApi {
   Future<http.Response> deleteApp(String name) => _send('DELETE', '/apps/$name');
   Future<http.Response> reorderApps(List<String> order, List<String> disabled) =>
       _send('PUT', '/apps/order', body: {'order': order, 'disabled': disabled});
+  Future<http.Response> pushApp(String name, Map<String, dynamic> body) =>
+      _send('PUT', '/apps/pushed/$name', body: body);
 
   Future<List<Map<String, dynamic>>> getApps() async {
     try {

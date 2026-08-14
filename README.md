@@ -31,6 +31,18 @@ Es ist **kein** Android-Studio/Flutter nötig – die APK wird von GitHub automa
 > Die APK ist mit dem Debug-Schlüssel signiert (für private Nutzung/Sideloading völlig ok,
 > nur nicht für den Play Store).
 
+### Automatische Updates via Obtainium (empfohlen)
+[Obtainium](https://github.com/ImranR98/Obtainium) installiert die App direkt aus
+diesem GitHub-Repo und **hält sie automatisch aktuell** – ohne Google Play, ohne Konto.
+
+1. **Obtainium** installieren (aus dem
+   [Obtainium-Release](https://github.com/ImranR98/Obtainium/releases) oder F-Droid).
+2. In Obtainium **„App hinzufügen"** → diese URL einfügen:
+   ```
+   https://github.com/x1marc/awtrix-ng-remote
+   ```
+3. Installieren. Bei jedem neuen Build (höhere Versionsnummer) bietet Obtainium das Update an.
+
 ## Benutzen
 1. App öffnen → **„Uhr suchen"** (findet Uhren im WLAN) **oder** oben **+** für IP/Hostname
    (z. B. `192.168.1.50` oder `awtrixng-a1b2c3.local`).
