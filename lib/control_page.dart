@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import 'api.dart';
+import 'color_picker.dart';
 import 'widgets.dart';
 
 class ControlPage extends StatefulWidget {
@@ -38,6 +39,7 @@ class _ControlPageState extends State<ControlPage> {
       padding: const EdgeInsets.symmetric(vertical: 6),
       children: [
         if (_busy) const LinearProgressIndicator(minHeight: 2),
+        MatrixPreview(baseUrl: widget.device.base),
 
         // --- Benachrichtigung ---
         SectionCard(
@@ -52,14 +54,27 @@ class _ControlPageState extends State<ControlPage> {
             const SizedBox(height: 10),
             Wrap(
               spacing: 6,
-              children: kColors.entries
-                  .map((e) => ChoiceChip(
-                        label: Text(e.key),
-                        selected: _notifyColor == e.value,
-                        onSelected: (_) =>
-                            setState(() => _notifyColor = e.value),
-                      ))
-                  .toList(),
+              runSpacing: 6,
+              children: [
+                for (final e in kColors.entries)
+                  ChoiceChip(
+                    label: Text(e.key),
+                    selected: _notifyColor == e.value,
+                    onSelected: (_) => setState(() => _notifyColor = e.value),
+                  ),
+                ActionChip(
+                  avatar:
+                      CircleAvatar(radius: 9, backgroundColor: rgb(_notifyColor)),
+                  label: const Text('Eigene…'),
+                  onPressed: () async {
+                    final hex = await pickColor(context,
+                        initialHex: colorToHex(rgb(_notifyColor)));
+                    if (hex != null) {
+                      setState(() => _notifyColor = rgbFromHex(hex));
+                    }
+                  },
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             Row(children: [
@@ -191,6 +206,18 @@ class _ControlPageState extends State<ControlPage> {
                         : () =>
                             _run(() => api.moodlight(e.value), 'Moodlight'),
                   ),
+                ActionChip(
+                  avatar: const Icon(Icons.palette, size: 18),
+                  label: const Text('Eigene…'),
+                  onPressed: _busy
+                      ? null
+                      : () async {
+                          final hex = await pickColor(context);
+                          if (hex != null) {
+                            _run(() => api.moodlight(rgbFromHex(hex)), 'Moodlight');
+                          }
+                        },
+                ),
                 ActionChip(
                   avatar: const Icon(Icons.power_settings_new, size: 18),
                   label: const Text('Aus'),

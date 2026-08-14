@@ -45,6 +45,9 @@ jobs:
       - name: Abhaengigkeiten holen
         run: flutter pub get
 
+      - name: App-Icon erzeugen (Launcher-Icons)
+        run: dart run flutter_launcher_icons
+
       - name: APK bauen (release)
         run: flutter build apk --release
 

@@ -1,7 +1,36 @@
 import 'package:flutter/material.dart';
 
 import 'api.dart';
+import 'settings_catalog.dart' show prettifyKey;
 import 'widgets.dart';
+
+const Map<String, String> _friendlyKeys = {
+  'version': 'Firmware-Version',
+  'firmware': 'Firmware',
+  'uptime': 'Laufzeit',
+  'freeHeap': 'Freier Speicher',
+  'heap': 'Freier Speicher',
+  'ip': 'IP-Adresse',
+  'mac': 'MAC-Adresse',
+  'hostname': 'Hostname',
+  'ssid': 'WLAN-Name',
+  'wifiSsid': 'WLAN-Name',
+  'rssi': 'WLAN-Signal',
+  'wifiRssi': 'WLAN-Signal',
+  'temperature': 'Temperatur',
+  'temp': 'Temperatur',
+  'humidity': 'Luftfeuchte',
+  'lux': 'Umgebungslicht (Lux)',
+  'battery': 'Batterie',
+  'brightness': 'Helligkeit',
+  'model': 'Modell',
+  'board': 'Board',
+  'matrixType': 'Matrix-Typ',
+  'app': 'Aktuelle App',
+  'apps': 'Anzahl Apps',
+};
+
+String _label(String k) => _friendlyKeys[k] ?? prettifyKey(k);
 
 class SystemPage extends StatefulWidget {
   final AwtrixDevice device;
@@ -85,7 +114,7 @@ class _SystemPageState extends State<SystemPage> {
             children: [
               SizedBox(
                 width: 150,
-                child: Text(k,
+                child: Text(_label(k),
                     style: const TextStyle(fontWeight: FontWeight.w600)),
               ),
               Expanded(child: Text('${m[k]}')),
