@@ -386,52 +386,43 @@ class _SystemPageState extends State<SystemPage> {
     }
   }
 
-  // TEMPORÄR (Diagnose 2 – Bisektion): A repliziert das echte Feld exakt,
-  // B/C/D ändern je GENAU EINE Sache. Das grau-vs-sauber-Muster nennt die
-  // Ursache eindeutig.
-  Widget _dbgRow(String label, Widget field) => Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label,
-                style: const TextStyle(
-                    color: Colors.black, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 4),
-            field,
-          ],
-        ),
-      );
-
+  // TEMPORÄR (Diagnose 3): G1 = Feld allein, G2 = GLEICHES Feld im echten
+  // Kontext (Card + ExpansionTile). Theme-neutral, damit Hell/Dunkel egal ist.
   Widget _debugFieldTest() {
+    Widget field() => SizedBox(
+          height: 46,
+          child: TextFormField(
+              initialValue: '192.168.178.1', decoration: _deco()),
+        );
     return Card(
       margin: const EdgeInsets.all(12),
-      color: const Color(0xFFFFF3CD),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('🔬 DEBUG 2 – bitte NUR hiervon einen Screenshot',
-                style:
-                    TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
-            const SizedBox(height: 10),
-            _dbgRow(
-                'A) wie echtes Feld: Höhe46 + Form + Wert',
-                SizedBox(
-                    height: 46,
-                    child: TextFormField(
-                        initialValue: '192.168.178.1', decoration: _deco()))),
-            _dbgRow(
-                'B) OHNE feste Höhe (Form + Wert)',
-                TextFormField(
-                    initialValue: '192.168.178.1', decoration: _deco())),
-            _dbgRow(
-                'C) Höhe46 + Form, OHNE Wert',
-                SizedBox(
-                    height: 46, child: TextFormField(decoration: _deco()))),
-            _dbgRow('D) Höhe46 + TextField (keine Form)',
-                SizedBox(height: 46, child: TextField(decoration: _deco()))),
+            const Text('🔬 DEBUG 3 – Screenshot bitte (Hell/Dunkel egal)',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            const Text('G1) Feld allein:'),
+            const SizedBox(height: 4),
+            field(),
+            const SizedBox(height: 16),
+            const Text('G2) GLEICHES Feld in Card + ExpansionTile (wie echt):'),
+            const SizedBox(height: 4),
+            Card(
+              child: ExpansionTile(
+                initiallyExpanded: true,
+                title: const Text('Gruppe'),
+                childrenPadding: const EdgeInsets.only(bottom: 6),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                    child: field(),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
