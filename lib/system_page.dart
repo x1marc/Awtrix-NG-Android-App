@@ -386,6 +386,67 @@ class _SystemPageState extends State<SystemPage> {
     }
   }
 
+  // TEMPORÄR (Diagnose der grauen Felder): 4 isolierte Varianten. Ein
+  // Screenshot davon zeigt eindeutig, was das Grau verursacht.
+  Widget _debugFieldTest() {
+    return Card(
+      margin: const EdgeInsets.all(12),
+      color: const Color(0xFFFFF3CD),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: const [
+            Text('🔬 DEBUG – bitte NUR hiervon einen Screenshot schicken',
+                style:
+                    TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+            SizedBox(height: 10),
+            Text('1) filled:false + Rahmen', style: TextStyle(color: Colors.black)),
+            SizedBox(height: 4),
+            TextField(
+              decoration: InputDecoration(
+                  filled: false,
+                  border: OutlineInputBorder(),
+                  hintText: 'Test 1'),
+            ),
+            SizedBox(height: 12),
+            Text('2) Füllung ROT', style: TextStyle(color: Colors.black)),
+            SizedBox(height: 4),
+            TextField(
+              decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.red,
+                  border: OutlineInputBorder(),
+                  hintText: 'Test 2'),
+            ),
+            SizedBox(height: 12),
+            Text('3) collapsed in WEISS', style: TextStyle(color: Colors.black)),
+            SizedBox(height: 4),
+            ColoredBox(
+              color: Colors.white,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                child: TextField(
+                    decoration: InputDecoration.collapsed(hintText: 'Test 3')),
+              ),
+            ),
+            SizedBox(height: 12),
+            Text('4) GAR keine Dekoration (auf Weiß)',
+                style: TextStyle(color: Colors.black)),
+            SizedBox(height: 4),
+            ColoredBox(
+              color: Colors.white,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                child: TextField(decoration: null),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) return const Center(child: CircularProgressIndicator());
@@ -419,6 +480,7 @@ class _SystemPageState extends State<SystemPage> {
         ListView(
           padding: const EdgeInsets.fromLTRB(0, 6, 0, 96),
           children: [
+            _debugFieldTest(),
             Card(
               margin: const EdgeInsets.fromLTRB(12, 6, 12, 6),
               color: Theme.of(context).colorScheme.errorContainer,
