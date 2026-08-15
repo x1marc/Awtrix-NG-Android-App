@@ -20,6 +20,11 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _load();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) maybeShowSupportSheet(context);
+      });
+    });
   }
 
   Future<void> _load() async {

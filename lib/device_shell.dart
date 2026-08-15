@@ -6,6 +6,7 @@ import 'control_page.dart';
 import 'icons_page.dart';
 import 'main.dart' show ThemeToggleButton;
 import 'settings_page.dart';
+import 'support.dart';
 import 'system_page.dart';
 
 class DeviceShell extends StatefulWidget {
@@ -56,7 +57,7 @@ class _DeviceShellState extends State<DeviceShell> {
     return Scaffold(
       appBar: AppBar(
         title: Text('${widget.device.name}  ·  ${_labels[_i]}'),
-        actions: const [ThemeToggleButton()],
+        actions: const [BmcButton(), ThemeToggleButton()],
       ),
       body: wide
           ? Row(
