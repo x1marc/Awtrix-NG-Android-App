@@ -199,6 +199,37 @@ class AwtrixApi {
     final d = _json(await _send('GET', '/capabilities'));
     return d is Map ? d.cast<String, dynamic>() : {};
   }
+
+  // --- Dateien / Icons ---
+  Future<Map<String, dynamic>> getFiles(String dir) async {
+    final d = _json(await _send('GET', '/files?dir=$dir'));
+    return d is Map ? d.cast<String, dynamic>() : {};
+  }
+
+  Future<http.Response> deleteFile(String fullPath) =>
+      _send('DELETE', '/files?path=$fullPath');
+
+  Future<http.Response> uploadFile(
+      String dir, String filename, List<int> bytes) async {
+    final req = http.MultipartRequest(
+        'POST', Uri.parse('${device.base}/api/v1/files?dir=$dir'));
+    req.files
+        .add(http.MultipartFile.fromBytes('file', bytes, filename: filename));
+    final s = await req.send().timeout(const Duration(seconds: 15));
+    return http.Response.fromStream(s);
+  }
+}
+
+/// Lädt ein LaMetric-Icon (PNG) anhand seiner numerischen ID herunter.
+/// null bei Fehler. Größe kann variieren (nicht immer 8x8).
+Future<List<int>?> fetchLametricIcon(String id) async {
+  final uri =
+      Uri.parse('https://developer.lametric.com/content/apps/icon_thumbs/$id');
+  try {
+    final r = await http.get(uri).timeout(const Duration(seconds: 10));
+    if (r.statusCode == 200 && r.bodyBytes.isNotEmpty) return r.bodyBytes;
+  } catch (_) {}
+  return null;
 }
 
 /// UDP-Broadcast-Discovery: sendet FIND_AWTRIXNG an :4210, lauscht auf :4211.

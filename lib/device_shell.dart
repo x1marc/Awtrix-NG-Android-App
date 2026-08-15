@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'api.dart';
 import 'apps_page.dart';
 import 'control_page.dart';
+import 'icons_page.dart';
 import 'main.dart' show ThemeToggleButton;
 import 'settings_page.dart';
 import 'system_page.dart';
@@ -21,12 +22,19 @@ class _DeviceShellState extends State<DeviceShell> {
   late final List<Widget> _pages = [
     ControlPage(device: widget.device),
     AppsPage(device: widget.device),
+    IconsPage(device: widget.device),
     SettingsPage(device: widget.device),
     SystemPage(device: widget.device),
   ];
 
-  static const _labels = ['Steuern', 'Apps', 'Einstellungen', 'System'];
-  static const _icons = [Icons.tune, Icons.apps, Icons.settings, Icons.dns];
+  static const _labels = ['Steuern', 'Apps', 'Icons', 'Einstellungen', 'System'];
+  static const _icons = [
+    Icons.tune,
+    Icons.apps,
+    Icons.image,
+    Icons.settings,
+    Icons.dns,
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +71,8 @@ class _DeviceShellState extends State<DeviceShell> {
           : NavigationBar(
               selectedIndex: _i,
               onDestinationSelected: (v) => setState(() => _i = v),
+              labelBehavior:
+                  NavigationDestinationLabelBehavior.onlyShowSelected,
               destinations: [
                 for (var k = 0; k < _labels.length; k++)
                   NavigationDestination(icon: Icon(_icons[k]), label: _labels[k]),
