@@ -124,19 +124,35 @@ class AwtrixApi {
           body: {'color': color, 'brightness': brightness});
   Future<http.Response> moodlightOff() => _send('DELETE', '/display/moodlight');
 
+  static ScreenData? _parseScreen(dynamic d) {
+    if (d is Map && d['pixels'] is List) {
+      final w = (d['width'] as num?)?.toInt() ?? 32;
+      final h = (d['height'] as num?)?.toInt() ?? 8;
+      final px = <int>[];
+      for (final e in (d['pixels'] as List)) {
+        px.add(e is num ? e.toInt() : 0);
+      }
+      return ScreenData(w, h, px);
+    }
+    return null;
+  }
+
   /// Aktuelles Displaybild (Pixel). null, wenn nicht unterstützt/erreichbar.
   Future<ScreenData?> getScreen() async {
     try {
-      final d = _json(await _send('GET', '/display/screen'));
-      if (d is Map && d['pixels'] is List) {
-        final w = (d['width'] as num?)?.toInt() ?? 32;
-        final h = (d['height'] as num?)?.toInt() ?? 8;
-        final px = <int>[];
-        for (final e in (d['pixels'] as List)) {
-          px.add(e is num ? e.toInt() : 0);
-        }
-        return ScreenData(w, h, px);
-      }
+      return _parseScreen(_json(await _send('GET', '/display/screen')));
+    } catch (_) {}
+    return null;
+  }
+
+  /// Wie getScreen, aber mit wiederverwendbarem Client (Keep-Alive) für die
+  /// schnelle Live-Vorschau (viele Abfragen pro Sekunde).
+  Future<ScreenData?> getScreenVia(http.Client client) async {
+    try {
+      final r = await client
+          .get(Uri.parse('${device.base}/api/v1/display/screen'))
+          .timeout(const Duration(seconds: 2));
+      if (r.statusCode == 200) return _parseScreen(jsonDecode(r.body));
     } catch (_) {}
     return null;
   }

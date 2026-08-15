@@ -8,7 +8,8 @@ import 'widgets.dart';
 
 class ControlPage extends StatefulWidget {
   final AwtrixDevice device;
-  const ControlPage({super.key, required this.device});
+  final ValueListenable<bool>? active;
+  const ControlPage({super.key, required this.device, this.active});
 
   @override
   State<ControlPage> createState() => _ControlPageState();
@@ -41,7 +42,7 @@ class _ControlPageState extends State<ControlPage> {
       padding: const EdgeInsets.symmetric(vertical: 6),
       children: [
         if (_busy) const LinearProgressIndicator(minHeight: 2),
-        MatrixPreview(api: api),
+        MatrixPreview(api: api, active: widget.active),
 
         // --- Benachrichtigung ---
         SectionCard(

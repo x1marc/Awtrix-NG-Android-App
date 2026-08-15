@@ -1,60 +1,109 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 import 'api.dart';
 
-/// Live-Vorschau des Uhr-Displays: holt /display/screen (JSON mit Pixeln)
-/// und zeichnet die LED-Matrix selbst. Aktualisiert sich automatisch.
+/// Live-Vorschau des Uhr-Displays: pollt /display/screen in einer schnellen
+/// Schleife (~30 FPS) über eine Keep-Alive-Verbindung und zeichnet die Matrix
+/// selbst. Pausiert automatisch, wenn [active] false ist (anderer Tab).
 class MatrixPreview extends StatefulWidget {
   final AwtrixApi api;
-  const MatrixPreview({super.key, required this.api});
+  final ValueListenable<bool>? active;
+  const MatrixPreview({super.key, required this.api, this.active});
 
   @override
   State<MatrixPreview> createState() => _MatrixPreviewState();
 }
 
-class _MatrixPreviewState extends State<MatrixPreview> {
-  ScreenData? _data;
+class _MatrixPreviewState extends State<MatrixPreview>
+    with WidgetsBindingObserver {
+  final ValueNotifier<ScreenData?> _screen = ValueNotifier(null);
+  final http.Client _client = http.Client();
   bool _live = true;
   bool _failed = false;
-  bool _busy = false;
-  Timer? _timer;
+  bool _running = false;
+  bool _appResumed = true;
+  double _fps = 0;
+  int _frames = 0;
+  DateTime _fpsSince = DateTime.now();
+
+  static const _targetMs = 33; // ~30 FPS
 
   @override
   void initState() {
     super.initState();
-    _tick();
-    _timer = Timer.periodic(const Duration(milliseconds: 1200), (_) {
-      if (_live) _tick();
-    });
+    WidgetsBinding.instance.addObserver(this);
+    widget.active?.addListener(_onActive);
+    _start();
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _running = false;
+    widget.active?.removeListener(_onActive);
+    WidgetsBinding.instance.removeObserver(this);
+    _client.close();
+    _screen.dispose();
     super.dispose();
   }
 
-  Future<void> _tick() async {
-    if (_busy) return;
-    _busy = true;
-    final d = await widget.api.getScreen();
-    _busy = false;
-    if (!mounted) return;
-    setState(() {
-      if (d != null) {
-        _data = d;
-        _failed = false;
-      } else if (_data == null) {
-        _failed = true;
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _appResumed = state == AppLifecycleState.resumed;
+    if (_appResumed) _start();
+  }
+
+  void _onActive() {
+    if (widget.active?.value == true) _start();
+  }
+
+  bool get _shouldRun =>
+      _live && _appResumed && (widget.active?.value ?? true) && mounted;
+
+  void _start() {
+    if (!_running) {
+      _running = true;
+      _fpsSince = DateTime.now();
+      _frames = 0;
+      _loop();
+    }
+  }
+
+  Future<void> _loop() async {
+    while (_running && mounted) {
+      if (!_shouldRun) {
+        await Future.delayed(const Duration(milliseconds: 200));
+        continue;
       }
-    });
+      final t = DateTime.now();
+      final d = await widget.api.getScreenVia(_client);
+      if (!mounted) break;
+      if (d != null) {
+        _screen.value = d;
+        if (_failed) setState(() => _failed = false);
+        _frames++;
+        final ms = DateTime.now().difference(_fpsSince).inMilliseconds;
+        if (ms >= 500) {
+          setState(() {
+            _fps = _frames * 1000 / ms;
+            _frames = 0;
+            _fpsSince = DateTime.now();
+          });
+        }
+      } else if (_screen.value == null && !_failed) {
+        setState(() => _failed = true);
+      }
+      final elapsed = DateTime.now().difference(t).inMilliseconds;
+      final wait = _targetMs - elapsed;
+      if (wait > 0) await Future.delayed(Duration(milliseconds: wait));
+    }
+    _running = false;
   }
 
   @override
   Widget build(BuildContext context) {
-    final d = _data;
     return Card(
       margin: const EdgeInsets.fromLTRB(12, 8, 12, 4),
       child: Padding(
@@ -66,47 +115,46 @@ class _MatrixPreviewState extends State<MatrixPreview> {
               const SizedBox(width: 8),
               const Text('Live-Vorschau',
                   style: TextStyle(fontWeight: FontWeight.bold)),
-              if (d != null) ...[
-                const SizedBox(width: 8),
-                Text('${d.width}×${d.height}',
+              const SizedBox(width: 8),
+              if (_live)
+                Text('${_fps.toStringAsFixed(0)} FPS',
                     style: Theme.of(context).textTheme.bodySmall),
-              ],
               const Spacer(),
               IconButton(
                 tooltip: _live ? 'Pause' : 'Live',
                 icon: Icon(_live ? Icons.pause : Icons.play_arrow, size: 20),
                 onPressed: () => setState(() {
                   _live = !_live;
-                  if (_live) _tick();
+                  if (_live) _start();
                 }),
               ),
-              IconButton(
-                tooltip: 'Aktualisieren',
-                icon: const Icon(Icons.refresh, size: 18),
-                onPressed: _tick,
-              ),
             ]),
-            AspectRatio(
-              aspectRatio: d == null ? 4.0 : (d.width / d.height),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.black,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: d == null
-                    ? Center(
-                        child: Text(
-                          _failed ? 'Vorschau nicht verfügbar' : 'lädt…',
-                          style: const TextStyle(
-                              color: Colors.white54, fontSize: 12),
-                        ),
-                      )
-                    : CustomPaint(
-                        painter: _MatrixPainter(d.width, d.height, d.pixels),
-                        size: Size.infinite,
-                      ),
-              ),
+            ValueListenableBuilder<ScreenData?>(
+              valueListenable: _screen,
+              builder: (context, d, _) {
+                return AspectRatio(
+                  aspectRatio: d == null ? 4.0 : (d.width / d.height),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: d == null
+                        ? Center(
+                            child: Text(
+                              _failed ? 'Vorschau nicht verfügbar' : 'lädt…',
+                              style: const TextStyle(
+                                  color: Colors.white54, fontSize: 12),
+                            ),
+                          )
+                        : CustomPaint(
+                            painter: _MatrixPainter(d.width, d.height, d.pixels),
+                            size: Size.infinite,
+                          ),
+                  ),
+                );
+              },
             ),
           ],
         ),
@@ -138,10 +186,8 @@ class _MatrixPainter extends CustomPainter {
         final r = (v >> 16) & 0xFF;
         final g = (v >> 8) & 0xFF;
         final b = v & 0xFF;
-        // Dunkle Pixel leicht abheben, damit das Raster sichtbar bleibt.
-        paint.color = (v == 0)
-            ? const Color(0xFF141414)
-            : Color.fromARGB(255, r, g, b);
+        paint.color =
+            (v == 0) ? const Color(0xFF141414) : Color.fromARGB(255, r, g, b);
         final rect = Rect.fromLTWH(
           x * cellW + gap,
           y * cellH + gap,
