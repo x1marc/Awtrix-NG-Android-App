@@ -44,6 +44,19 @@ jobs:
           echo "----- AndroidManifest.xml -----"
           cat "$M"
 
+      - name: MainActivity ersetzen (MIUI-Autofill-Grau aus)
+        run: |
+          FOUND=$(find android/app/src/main/kotlin -name MainActivity.kt | head -1)
+          if [ -n "$FOUND" ]; then
+            cp android_overrides/MainActivity.kt "$FOUND"
+            echo "ersetzt: $FOUND"
+          else
+            DEST=android/app/src/main/kotlin/com/x1marc/awtrix_ng_remote/MainActivity.kt
+            mkdir -p "$(dirname "$DEST")"
+            cp android_overrides/MainActivity.kt "$DEST"
+            echo "neu: $DEST"
+          fi
+
       - name: Abhaengigkeiten holen
         run: flutter pub get
 
