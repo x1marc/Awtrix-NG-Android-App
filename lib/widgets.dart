@@ -103,6 +103,9 @@ class _PlainFieldState extends State<PlainField> {
     final cs = Theme.of(context).colorScheme;
     final focused = _focus.hasFocus;
     return Container(
+      height: 50, // FESTE Höhe -> Feld kann sich nicht aufblähen
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         border: Border.all(
           color: focused ? const Color(0xFFFFC107) : cs.outline,
@@ -110,7 +113,6 @@ class _PlainFieldState extends State<PlainField> {
         ),
         borderRadius: BorderRadius.circular(8),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
       child: Row(
         children: [
           Expanded(
@@ -124,6 +126,7 @@ class _PlainFieldState extends State<PlainField> {
               keyboardType: widget.keyboardType,
               obscureText: widget.obscureText,
               textAlign: widget.textAlign,
+              maxLines: 1,
               style: TextStyle(color: cs.onSurface, fontSize: 15),
               decoration: InputDecoration.collapsed(hintText: widget.hint),
             ),

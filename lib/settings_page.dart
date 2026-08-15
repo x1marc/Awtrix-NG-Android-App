@@ -354,9 +354,11 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
             Expanded(
-              child: ListView(
+              child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(8, 4, 8, 96),
-                children: [
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
                   for (var gi = 0; gi < groupsInOrder.length; gi++)
                     Card(
                       margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
@@ -379,6 +381,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       child: Center(child: Text('Nichts gefunden.')),
                     ),
                 ],
+                ),
               ),
             ),
           ],

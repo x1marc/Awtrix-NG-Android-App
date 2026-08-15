@@ -404,9 +404,11 @@ class _SystemPageState extends State<SystemPage> {
 
     return Stack(
       children: [
-        ListView(
+        SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(0, 6, 0, 96),
-          children: [
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
             Card(
               margin: const EdgeInsets.fromLTRB(12, 6, 12, 6),
               color: Theme.of(context).colorScheme.errorContainer,
@@ -490,6 +492,7 @@ class _SystemPageState extends State<SystemPage> {
               ],
             ),
           ],
+          ),
         ),
         Positioned(
           right: 16,
