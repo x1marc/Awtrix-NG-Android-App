@@ -66,6 +66,16 @@ class AwtrixApp extends StatelessWidget {
         useMaterial3: true,
         brightness: b,
         colorSchemeSeed: const Color(0xFFFFC107), // AWTRIX-Gelb
+        // Erzwingt saubere, umrandete Eingabefelder OHNE graue Standardfüllung
+        // (transparente Füllung übermalt die M3-/System-Standardfarbe).
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.transparent,
+          isDense: true,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        ),
       );
 
   @override

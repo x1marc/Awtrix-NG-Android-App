@@ -1,4 +1,4 @@
-# AWTRIX NG Remote
+# AWTRIX NG Android App
 
 Eine kleine **Android-App**, um eine **[AWTRIX NG](https://blueforcer.github.io/awtrix-ng/)**-Uhr
 **lokal im WLAN** zu steuern und einzustellen – ganz ohne Cloud, ohne MQTT-Broker.
@@ -39,7 +39,7 @@ diesem GitHub-Repo und **hält sie automatisch aktuell** – ohne Google Play, o
    [Obtainium-Release](https://github.com/ImranR98/Obtainium/releases) oder F-Droid).
 2. In Obtainium **„App hinzufügen"** → diese URL einfügen:
    ```
-   https://github.com/x1marc/awtrix-ng-remote
+   https://github.com/x1marc/Awtrix-NG-Android-App
    ```
 3. Installieren. Bei jedem neuen Build (höhere Versionsnummer) bietet Obtainium das Update an.
 

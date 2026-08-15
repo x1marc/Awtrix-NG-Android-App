@@ -5,15 +5,10 @@ import 'color_picker.dart';
 import 'settings_catalog.dart';
 import 'widgets.dart';
 
-/// Kompakte, umrandete (nicht gefüllte) Eingabe-Dekoration – verhindert die
-/// grauen Vollflächen-Boxen des Material-3-Standardstils.
-InputDecoration denseDeco({String? suffix}) => InputDecoration(
-      isDense: true,
-      filled: false,
-      suffixText: suffix,
-      border: const OutlineInputBorder(),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-    );
+/// Nutzt das globale inputDecorationTheme (umrandet, transparent gefüllt),
+/// nur die Einheit ergänzen.
+InputDecoration denseDeco({String? suffix}) =>
+    InputDecoration(suffixText: suffix);
 
 class SettingsPage extends StatefulWidget {
   final AwtrixDevice device;

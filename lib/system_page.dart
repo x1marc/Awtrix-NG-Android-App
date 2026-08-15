@@ -4,34 +4,78 @@ import 'api.dart';
 import 'settings_catalog.dart' show prettifyKey;
 import 'widgets.dart';
 
-// Deutsche Namen für die System-Gruppen (Top-Level-Objekte von /system).
-const Map<String, String> _groupLabels = {
-  'wifi': 'WLAN',
-  'network': 'WLAN / Netzwerk',
-  'webserver': 'Webserver',
-  'auth': 'Webserver-Login',
-  'mqtt': 'MQTT',
-  'ntp': 'Zeit (NTP)',
-  'time': 'Zeit',
-  'matrix': 'Panel',
-  'panel': 'Panel',
-  'display': 'Panel',
-  'sensors': 'Helligkeit & Sensoren',
-  'sensor': 'Helligkeit & Sensoren',
-  'gpio': 'GPIO',
-  'pins': 'GPIO',
-  'buttons': 'Tasten',
-  'audio': 'Audio',
-  'scripts': 'Skripte',
-  'maintenance': 'Wartung',
-  'misc': 'Sonstiges',
-};
-
-const List<String> _groupOrder = [
-  'wifi', 'network', 'webserver', 'auth', 'mqtt', 'ntp', 'time', 'matrix',
-  'panel', 'display', 'sensors', 'sensor', 'gpio', 'pins', 'buttons', 'audio',
-  'scripts', 'maintenance', 'misc',
+// Ordnet einen (flachen) System-Schlüssel einer deutschen Gruppe zu.
+const List<String> _germanGroupOrder = [
+  'WLAN / Netzwerk',
+  'Webserver',
+  'MQTT',
+  'Zeit',
+  'Panel',
+  'Helligkeit & Sensoren',
+  'GPIO',
+  'Tasten',
+  'Audio',
+  'Skripte',
+  'Sonstiges',
 ];
+
+String _groupOf(String key) {
+  final k = key.toLowerCase();
+  if (k.startsWith('wifi') ||
+      k.startsWith('ssid') ||
+      k == 'hostname' ||
+      k.startsWith('net') ||
+      k.startsWith('dns') ||
+      k == 'gateway' ||
+      k == 'ip' ||
+      k == 'subnet' ||
+      k.startsWith('static')) {
+    return 'WLAN / Netzwerk';
+  }
+  if (k.startsWith('auth') || k.startsWith('web') || k == 'port') {
+    return 'Webserver';
+  }
+  if (k.startsWith('mqtt') || k.startsWith('ha')) return 'MQTT';
+  if (k.startsWith('ntp') ||
+      k.startsWith('tz') ||
+      k.contains('timezone') ||
+      k.startsWith('time')) {
+    return 'Zeit';
+  }
+  if (k.startsWith('panel') ||
+      k.startsWith('matrix') ||
+      k.startsWith('led') ||
+      k.contains('rotate') ||
+      k.contains('mirror') ||
+      k.contains('flip')) {
+    return 'Panel';
+  }
+  if (k.contains('brightness') ||
+      k.startsWith('ldr') ||
+      k.startsWith('battery') ||
+      k.contains('temp') ||
+      k.contains('humid') ||
+      k.startsWith('lux') ||
+      k.contains('sensor')) {
+    return 'Helligkeit & Sensoren';
+  }
+  if (k.startsWith('gpio') ||
+      k.contains('pin') ||
+      k.contains('sda') ||
+      k.contains('scl')) {
+    return 'GPIO';
+  }
+  if (k.startsWith('button') || k.startsWith('key')) return 'Tasten';
+  if (k.startsWith('df') ||
+      k.startsWith('audio') ||
+      k.startsWith('buzzer') ||
+      k.startsWith('speaker') ||
+      k.startsWith('sound')) {
+    return 'Audio';
+  }
+  if (k.startsWith('script')) return 'Skripte';
+  return 'Sonstiges';
+}
 
 const Map<String, String> _fieldLabels = {
   'ssid': 'WLAN-Name',
@@ -67,24 +111,41 @@ const Map<String, String> _fieldLabels = {
   'minBrightness': 'Min. Helligkeit',
   'maxBrightness': 'Max. Helligkeit',
   'debug': 'Debug-Modus',
+  'authUser': 'Webserver-Benutzer',
+  'authPass': 'Webserver-Passwort',
+  'batteryDividerRatio': 'Batterie-Teiler',
+  'brightnessSmoothing': 'Helligkeits-Glättung',
+  'buttonCallback': 'Tasten-Callback (URL)',
+  'dfplayer': 'DFPlayer',
+  'mqttHost': 'Broker-Host',
+  'mqttPort': 'Broker-Port',
+  'mqttPrefix': 'Topic-Präfix',
+  'mqttUser': 'Broker-Benutzer',
+  'mqttPass': 'Broker-Passwort',
+  'netStatic': 'Feste IP verwenden',
+  'panelChainReverse': 'Kette umdrehen',
+  'panelChainSerpentine': 'Kette Serpentine',
+  'panelSerpentine': 'Serpentine',
+  'panelStart': 'Erste LED',
+  'panelWidth': 'Panel-Breite',
+  'panels': 'Anzahl Panels',
+  'wifiSsid': 'WLAN-Name',
+  'wifiPass': 'WLAN-Passwort',
+  'statsInterval': 'Stats-Intervall',
+  'ldrFactor': 'LDR-Faktor',
+  'ldrGamma': 'LDR-Gamma',
+  'ldrGpio': 'LDR an GPIO',
+  'temperatureOffset': 'Temperatur-Offset',
+  'humidityOffset': 'Luftfeuchte-Offset',
+  'scriptsEnabled': 'Skripte aktiv',
 };
 
-String _groupLabel(String k) => _groupLabels[k.toLowerCase()] ?? prettifyKey(k);
 String _fieldLabel(String k) => _fieldLabels[k] ?? prettifyKey(k);
 bool _isPassword(String k) => k.toLowerCase().contains('pass');
-bool _isRiskyGroup(String k) {
-  final l = k.toLowerCase();
-  return l.contains('wifi') || l.contains('gpio') || l.contains('pin') ||
-      l.contains('network');
-}
+bool _isRiskyGroup(String germanGroup) =>
+    germanGroup == 'WLAN / Netzwerk' || germanGroup == 'GPIO';
 
-InputDecoration _deco({String? hint}) => InputDecoration(
-      isDense: true,
-      filled: false,
-      hintText: hint,
-      border: const OutlineInputBorder(),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-    );
+InputDecoration _deco({String? hint}) => InputDecoration(hintText: hint);
 
 class SystemPage extends StatefulWidget {
   final AwtrixDevice device;
@@ -326,20 +387,27 @@ class _SystemPageState extends State<SystemPage> {
     if (_loading) return const Center(child: CircularProgressIndicator());
     if (_error != null) return ErrorRetry(message: _error!, onRetry: _load);
 
-    // Gruppen aus /system bilden.
+    // Flache /system nach Präfix in deutsche Gruppen einsortieren.
     final grouped = <String, List<String>>{};
-    final scalars = <String>[];
     for (final k in _system.keys) {
       final v = _system[k];
       if (v is Map) {
-        grouped[k] = v.keys.map((c) => '$k.$c').toList();
+        for (final c in v.keys) {
+          grouped.putIfAbsent(_groupOf(k), () => []).add('$k.$c');
+        }
       } else {
-        scalars.add(k);
+        grouped.putIfAbsent(_groupOf(k), () => []).add(k);
       }
     }
+    for (final list in grouped.values) {
+      list.sort((a, b) => _fieldLabel(a.contains('.') ? a.split('.')[1] : a)
+          .toLowerCase()
+          .compareTo(
+              _fieldLabel(b.contains('.') ? b.split('.')[1] : b).toLowerCase()));
+    }
     final orderedGroups = [
-      ..._groupOrder.where(grouped.containsKey),
-      ...grouped.keys.where((k) => !_groupOrder.contains(k)),
+      ..._germanGroupOrder.where(grouped.containsKey),
+      ...grouped.keys.where((g) => !_germanGroupOrder.contains(g)),
     ];
 
     return Stack(
@@ -368,39 +436,33 @@ class _SystemPageState extends State<SystemPage> {
                 ]),
               ),
             ),
+            // Editierbare Gruppen ZUERST ...
+            for (var gi = 0; gi < orderedGroups.length; gi++)
+              Card(
+                margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                child: ExpansionTile(
+                  key: PageStorageKey('sys-${orderedGroups[gi]}'),
+                  initiallyExpanded: gi == 0,
+                  leading: _isRiskyGroup(orderedGroups[gi])
+                      ? const Icon(Icons.warning_amber, color: Colors.orange)
+                      : null,
+                  title: Text(orderedGroups[gi],
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: _isRiskyGroup(orderedGroups[gi])
+                      ? const Text('Vorsicht – kann die Uhr trennen')
+                      : null,
+                  childrenPadding: const EdgeInsets.only(bottom: 6),
+                  children: [
+                    for (final fk in grouped[orderedGroups[gi]]!) _fieldRow(fk)
+                  ],
+                ),
+              ),
+            // ... dann Info & Wartung.
             SectionCard(
               title: 'Gerät & Statistik',
               icon: Icons.info_outline,
               children: _kv(_device),
             ),
-            for (final g in orderedGroups)
-              Card(
-                margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                child: ExpansionTile(
-                  key: PageStorageKey('sys-$g'),
-                  leading: _isRiskyGroup(g)
-                      ? const Icon(Icons.warning_amber, color: Colors.orange)
-                      : null,
-                  title: Text(_groupLabel(g),
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: _isRiskyGroup(g)
-                      ? const Text('Vorsicht – kann die Uhr trennen')
-                      : null,
-                  childrenPadding: const EdgeInsets.only(bottom: 6),
-                  children: [for (final fk in grouped[g]!) _fieldRow(fk)],
-                ),
-              ),
-            if (scalars.isNotEmpty)
-              Card(
-                margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                child: ExpansionTile(
-                  key: const PageStorageKey('sys-misc'),
-                  title: const Text('Sonstiges',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  childrenPadding: const EdgeInsets.only(bottom: 6),
-                  children: [for (final k in scalars..sort()) _fieldRow(k)],
-                ),
-              ),
             SectionCard(
               title: 'Wartung',
               icon: Icons.build,
