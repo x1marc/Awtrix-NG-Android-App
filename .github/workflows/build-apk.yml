@@ -34,9 +34,11 @@ jobs:
       - name: Eigene lib/pubspec wiederherstellen
         run: git checkout -- pubspec.yaml lib
 
-      - name: Manifest anpassen (INTERNET + https-queries fuer url_launcher)
+      - name: Manifest anpassen (App-Name + INTERNET + https-queries)
         run: |
           M=android/app/src/main/AndroidManifest.xml
+          # App-Name auf dem Handy (Launcher-Label)
+          sed -i -E 's#android:label="[^"]*"#android:label="Awtrix NG App"#' "$M"
           grep -q 'android.permission.INTERNET' "$M" || \
             sed -i 's#<application#<uses-permission android:name="android.permission.INTERNET"/>\n    <application#' "$M"
           grep -q '<queries>' "$M" || \
