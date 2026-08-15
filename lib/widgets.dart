@@ -50,6 +50,94 @@ class ErrorRetry extends StatelessWidget {
   }
 }
 
+/// Eingabefeld OHNE Material-InputDecorator. Dessen "input area" rendert auf
+/// manchen Geräten (MIUI/HyperOS) einen grauen Balken – unabhängig von
+/// `filled`. Hier kommt der Rahmen vom Container, das Feld selbst ist
+/// `InputDecoration.collapsed` (kein Decorator) -> garantiert kein Grau.
+class PlainField extends StatefulWidget {
+  final Key? fieldKey;
+  final String? initialValue;
+  final TextEditingController? controller;
+  final ValueChanged<String>? onChanged;
+  final String? hint;
+  final String? suffix;
+  final TextInputType? keyboardType;
+  final bool obscureText;
+  final TextAlign textAlign;
+  const PlainField({
+    super.key,
+    this.fieldKey,
+    this.initialValue,
+    this.controller,
+    this.onChanged,
+    this.hint,
+    this.suffix,
+    this.keyboardType,
+    this.obscureText = false,
+    this.textAlign = TextAlign.start,
+  });
+
+  @override
+  State<PlainField> createState() => _PlainFieldState();
+}
+
+class _PlainFieldState extends State<PlainField> {
+  final FocusNode _focus = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _focus.addListener(() {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _focus.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final focused = _focus.hasFocus;
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: focused ? const Color(0xFFFFC107) : cs.outline,
+          width: focused ? 2 : 1,
+        ),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextFormField(
+              key: widget.fieldKey,
+              controller: widget.controller,
+              initialValue:
+                  widget.controller == null ? widget.initialValue : null,
+              focusNode: _focus,
+              onChanged: widget.onChanged,
+              keyboardType: widget.keyboardType,
+              obscureText: widget.obscureText,
+              textAlign: widget.textAlign,
+              style: TextStyle(color: cs.onSurface, fontSize: 15),
+              decoration: InputDecoration.collapsed(hintText: widget.hint),
+            ),
+          ),
+          if (widget.suffix != null) ...[
+            const SizedBox(width: 6),
+            Text(widget.suffix!, style: TextStyle(color: cs.onSurfaceVariant)),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 /// Einheitliche Abschnitts-Karte mit Titelzeile.
 class SectionCard extends StatelessWidget {
   final String title;

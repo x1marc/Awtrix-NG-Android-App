@@ -5,15 +5,6 @@ import 'color_picker.dart';
 import 'settings_catalog.dart';
 import 'widgets.dart';
 
-/// Nutzt das globale inputDecorationTheme (umrandet, transparent gefüllt),
-/// nur die Einheit ergänzen.
-InputDecoration denseDeco({String? suffix}) => InputDecoration(
-      isDense: true,
-      filled: false, // KEIN Material-3-Grau
-      suffixText: suffix,
-      border: const OutlineInputBorder(),
-    );
-
 class SettingsPage extends StatefulWidget {
   final AwtrixDevice device;
   const SettingsPage({super.key, required this.device});
@@ -177,15 +168,14 @@ class _SettingsPageState extends State<SettingsPage> {
           title: Text(meta.label),
           subtitle: meta.help == null ? null : Text(meta.help!),
           trailing: SizedBox(
-            width: 108,
-            height: 46,
-            child: TextFormField(
-              key: ValueKey('$key-$_gen'),
+            width: 140,
+            child: PlainField(
+              fieldKey: ValueKey('$key-$_gen'),
               initialValue: '${v ?? ''}',
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true, signed: true),
               textAlign: TextAlign.end,
-              decoration: denseDeco(suffix: meta.unit),
+              suffix: meta.unit,
               onChanged: (t) {
                 final isInt = _raw(key) is int;
                 final p = isInt ? int.tryParse(t) : num.tryParse(t);
@@ -210,14 +200,10 @@ class _SettingsPageState extends State<SettingsPage> {
                 Text(meta.help!, style: Theme.of(context).textTheme.bodySmall),
               ],
               const SizedBox(height: 8),
-              SizedBox(
-                height: 46,
-                child: TextFormField(
-                  key: ValueKey('$key-$_gen'),
-                  initialValue: '${v ?? ''}',
-                  decoration: denseDeco(),
-                  onChanged: (t) => _set(key, t),
-                ),
+              PlainField(
+                fieldKey: ValueKey('$key-$_gen'),
+                initialValue: '${v ?? ''}',
+                onChanged: (t) => _set(key, t),
               ),
             ],
           ),
@@ -277,15 +263,13 @@ class _SettingsPageState extends State<SettingsPage> {
       return ListTile(
         title: Text(prettifyKey(key)),
         trailing: SizedBox(
-          width: 108,
-          height: 46,
-          child: TextFormField(
-            key: ValueKey('$key-$_gen'),
+          width: 140,
+          child: PlainField(
+            fieldKey: ValueKey('$key-$_gen'),
             initialValue: v.toString(),
             keyboardType:
                 const TextInputType.numberWithOptions(decimal: true, signed: true),
             textAlign: TextAlign.end,
-            decoration: denseDeco(),
             onChanged: (t) {
               final p = v is int ? int.tryParse(t) : num.tryParse(t);
               if (p != null) _set(key, p);
@@ -302,14 +286,10 @@ class _SettingsPageState extends State<SettingsPage> {
           children: [
             Text(prettifyKey(key), style: const TextStyle(fontSize: 16)),
             const SizedBox(height: 8),
-            SizedBox(
-              height: 46,
-              child: TextFormField(
-                key: ValueKey('$key-$_gen'),
-                initialValue: v,
-                decoration: denseDeco(),
-                onChanged: (t) => _set(key, t),
-              ),
+            PlainField(
+              fieldKey: ValueKey('$key-$_gen'),
+              initialValue: v,
+              onChanged: (t) => _set(key, t),
             ),
           ],
         ),

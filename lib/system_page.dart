@@ -144,13 +144,6 @@ bool _isPassword(String k) => k.toLowerCase().contains('pass');
 bool _isRiskyGroup(String germanGroup) =>
     germanGroup == 'WLAN / Netzwerk' || germanGroup == 'GPIO';
 
-InputDecoration _deco({String? hint}) => InputDecoration(
-      isDense: true,
-      filled: false, // KEIN Material-3-Grau
-      hintText: hint,
-      border: const OutlineInputBorder(),
-    );
-
 class SystemPage extends StatefulWidget {
   final AwtrixDevice device;
   const SystemPage({super.key, required this.device});
@@ -290,15 +283,13 @@ class _SystemPageState extends State<SystemPage> {
       return ListTile(
         title: Text(_fieldLabel(child)),
         trailing: SizedBox(
-          width: 120,
-          height: 46,
-          child: TextFormField(
-            key: ValueKey('$key-$_gen'),
+          width: 140,
+          child: PlainField(
+            fieldKey: ValueKey('$key-$_gen'),
             initialValue: '$v',
             keyboardType: const TextInputType.numberWithOptions(
                 decimal: true, signed: true),
             textAlign: TextAlign.end,
-            decoration: _deco(),
             onChanged: (t) {
               final p = v is int ? int.tryParse(t) : num.tryParse(t);
               if (p != null) _set(key, p);
@@ -316,15 +307,12 @@ class _SystemPageState extends State<SystemPage> {
           children: [
             Text(_fieldLabel(child), style: const TextStyle(fontSize: 16)),
             const SizedBox(height: 6),
-            SizedBox(
-              height: 46,
-              child: TextFormField(
-                key: ValueKey('$key-$_gen'),
-                initialValue: pw ? '' : '${v ?? ''}',
-                obscureText: pw,
-                decoration: _deco(hint: pw ? 'leer = unverändert' : null),
-                onChanged: (t) => _set(key, t),
-              ),
+            PlainField(
+              fieldKey: ValueKey('$key-$_gen'),
+              initialValue: pw ? '' : '${v ?? ''}',
+              obscureText: pw,
+              hint: pw ? 'leer = unverändert' : null,
+              onChanged: (t) => _set(key, t),
             ),
           ],
         ),
@@ -386,58 +374,6 @@ class _SystemPageState extends State<SystemPage> {
     }
   }
 
-  // TEMPORÄR (Diagnose 4): Rohdaten von /system anzeigen, um zu sehen, WELCHE
-  // Werte/Typen die echten (grauen) Felder haben. Sensible Keys maskiert.
-  String _dbgVal(String k, dynamic v) {
-    final lk = k.toLowerCase();
-    final secret = lk.contains('pass') ||
-        lk.contains('psk') ||
-        lk.contains('secret') ||
-        lk.contains('token') ||
-        lk.contains('key');
-    if (v is String) {
-      if (secret) return '<geheim, len ${v.length}>';
-      return '"$v" (len ${v.length})';
-    }
-    return '$v';
-  }
-
-  Widget _debugFieldTest() {
-    final rows = <Widget>[];
-    void add(String k, dynamic v) {
-      rows.add(Text('$k = ${_dbgVal(k, v)}  [${v.runtimeType}]',
-          style: const TextStyle(fontSize: 11)));
-    }
-
-    _system.forEach((k, v) {
-      if (v is Map) {
-        v.forEach((ck, cv) => add('$k.$ck', cv));
-      } else {
-        add(k, v);
-      }
-    });
-
-    return Card(
-      margin: const EdgeInsets.all(12),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('🔬 DEBUG 4 – Rohdaten /system (bitte Screenshot)',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 4),
-            const Text('(WLAN-Passwörter o.ä. sind maskiert)',
-                style: TextStyle(fontSize: 11)),
-            const SizedBox(height: 8),
-            ...rows,
-            if (rows.isEmpty) const Text('/system ist LEER!'),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     if (_loading) return const Center(child: CircularProgressIndicator());
@@ -471,7 +407,6 @@ class _SystemPageState extends State<SystemPage> {
         ListView(
           padding: const EdgeInsets.fromLTRB(0, 6, 0, 96),
           children: [
-            _debugFieldTest(),
             Card(
               margin: const EdgeInsets.fromLTRB(12, 6, 12, 6),
               color: Theme.of(context).colorScheme.errorContainer,
