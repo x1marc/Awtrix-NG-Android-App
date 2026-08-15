@@ -4,6 +4,7 @@ import 'api.dart';
 import 'device_shell.dart';
 import 'main.dart' show ThemeToggleButton;
 import 'support.dart';
+import 'version.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -122,6 +123,9 @@ class _HomePageState extends State<HomePage> {
                       'oder oben auf + für eine IP.',
                       textAlign: TextAlign.center,
                     ),
+                    const SizedBox(height: 28),
+                    Text('Version $kAppVersion',
+                        style: TextStyle(color: cs.outline, fontSize: 12)),
                   ],
                 ),
               ),
@@ -157,6 +161,13 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 const BmcCard(),
+                Padding(
+                  padding: const EdgeInsets.only(top: 6, bottom: 14),
+                  child: Center(
+                    child: Text('Awtrix NG App · v$kAppVersion',
+                        style: TextStyle(color: cs.outline, fontSize: 12)),
+                  ),
+                ),
               ],
             ),
       floatingActionButton: Row(

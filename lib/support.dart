@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'version.dart';
+
 const String kBmcUrl = 'https://buymeacoffee.com/x1marc';
 const String kScriptsUrl = 'https://github.com/x1marc/ha-awtrix-ng-scripts';
 const String kBlueprintsUrl = 'https://github.com/x1marc/ha-blueprints';
@@ -94,6 +96,9 @@ void showSupportSheet(BuildContext context) {
             const SizedBox(height: 4),
             const Text('Wenn sie dir gefällt, freue ich mich über einen '
                 'Kaffee – und schau gern bei meinen anderen Projekten vorbei.'),
+            const SizedBox(height: 6),
+            Text('Installierte Version: $kAppVersion',
+                style: Theme.of(ctx).textTheme.bodySmall),
             const SizedBox(height: 8),
             const BmcCard(),
             const SizedBox(height: 4),
