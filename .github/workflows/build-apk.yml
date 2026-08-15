@@ -75,10 +75,22 @@ jobs:
           name: awtrix-ng-remote-apk
           path: build/app/outputs/flutter-apk/app-release.apk
 
-      - name: APK als Release "latest" veroeffentlichen
+      - name: Version & Zeitstempel
+        id: meta
+        run: |
+          echo "version=3.1.${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+          echo "datetime=$(TZ=Europe/Berlin date '+%d.%m.%Y %H:%M')" >> "$GITHUB_OUTPUT"
+
+      - name: Neues Release veroeffentlichen (versioniert + Changelog)
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: latest
-          name: Neueste APK
-          body: Automatisch gebaute APK. Auf dem Handy installieren (Quelle "Unbekannt" erlauben).
+          tag_name: v${{ steps.meta.outputs.version }}
+          name: v${{ steps.meta.outputs.version }} · ${{ steps.meta.outputs.datetime }} Uhr
+          generate_release_notes: true
+          body: |
+            **Version:** ${{ steps.meta.outputs.version }}
+            **Datum/Uhrzeit:** ${{ steps.meta.outputs.datetime }} Uhr (Europe/Berlin)
+
+            ### Letzte Änderung
+            ${{ github.event.head_commit.message }}
           files: build/app/outputs/flutter-apk/app-release.apk
