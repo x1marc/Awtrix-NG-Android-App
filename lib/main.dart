@@ -62,21 +62,33 @@ void main() async {
 class AwtrixApp extends StatelessWidget {
   const AwtrixApp({super.key});
 
-  ThemeData _theme(Brightness b) => ThemeData(
-        useMaterial3: true,
-        brightness: b,
-        colorSchemeSeed: const Color(0xFFFFC107), // AWTRIX-Gelb
-        // Erzwingt saubere, umrandete Eingabefelder OHNE graue Standardfüllung
-        // (transparente Füllung übermalt die M3-/System-Standardfarbe).
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: Colors.transparent,
-          isDense: true,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        ),
-      );
+  ThemeData _theme(Brightness b) {
+    final dark = b == Brightness.dark;
+    // WICHTIG: DECKENDE Füllfarbe. Eine transparente/fehlende Füllung ließ
+    // auf MIUI/HyperOS die graue Karten-/System-Farbe durchscheinen -> Felder
+    // sahen grau/deaktiviert aus. Eine opake Farbe übermalt das komplett.
+    final fieldFill = dark ? const Color(0xFF15151B) : Colors.white;
+    final fieldBorder = dark ? Colors.white24 : Colors.black26;
+    OutlineInputBorder ob(Color c, [double w = 1]) => OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: c, width: w),
+        );
+    return ThemeData(
+      useMaterial3: true,
+      brightness: b,
+      colorSchemeSeed: const Color(0xFFFFC107), // AWTRIX-Gelb
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: fieldFill,
+        isDense: true,
+        border: ob(fieldBorder),
+        enabledBorder: ob(fieldBorder),
+        focusedBorder: ob(const Color(0xFFFFC107), 2),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +96,7 @@ class AwtrixApp extends StatelessWidget {
       valueListenable: themeModeNotifier,
       builder: (context, mode, _) {
         return MaterialApp(
-          title: 'AWTRIX NG Remote',
+          title: 'Awtrix NG App',
           debugShowCheckedModeBanner: false,
           themeMode: mode,
           theme: _theme(Brightness.light),

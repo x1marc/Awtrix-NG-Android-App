@@ -102,7 +102,7 @@ class _HomePageState extends State<HomePage> {
     final cs = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('AWTRIX NG Remote'),
+        title: const Text('Awtrix NG App'),
         actions: const [BmcButton(), ThemeToggleButton()],
       ),
       body: _devices.isEmpty
