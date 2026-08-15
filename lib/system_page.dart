@@ -386,14 +386,37 @@ class _SystemPageState extends State<SystemPage> {
     }
   }
 
-  // TEMPORÄR (Diagnose 3): G1 = Feld allein, G2 = GLEICHES Feld im echten
-  // Kontext (Card + ExpansionTile). Theme-neutral, damit Hell/Dunkel egal ist.
+  // TEMPORÄR (Diagnose 4): Rohdaten von /system anzeigen, um zu sehen, WELCHE
+  // Werte/Typen die echten (grauen) Felder haben. Sensible Keys maskiert.
+  String _dbgVal(String k, dynamic v) {
+    final lk = k.toLowerCase();
+    final secret = lk.contains('pass') ||
+        lk.contains('psk') ||
+        lk.contains('secret') ||
+        lk.contains('token') ||
+        lk.contains('key');
+    if (v is String) {
+      if (secret) return '<geheim, len ${v.length}>';
+      return '"$v" (len ${v.length})';
+    }
+    return '$v';
+  }
+
   Widget _debugFieldTest() {
-    Widget field() => SizedBox(
-          height: 46,
-          child: TextFormField(
-              initialValue: '192.168.178.1', decoration: _deco()),
-        );
+    final rows = <Widget>[];
+    void add(String k, dynamic v) {
+      rows.add(Text('$k = ${_dbgVal(k, v)}  [${v.runtimeType}]',
+          style: const TextStyle(fontSize: 11)));
+    }
+
+    _system.forEach((k, v) {
+      if (v is Map) {
+        v.forEach((ck, cv) => add('$k.$ck', cv));
+      } else {
+        add(k, v);
+      }
+    });
+
     return Card(
       margin: const EdgeInsets.all(12),
       child: Padding(
@@ -401,28 +424,14 @@ class _SystemPageState extends State<SystemPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('🔬 DEBUG 3 – Screenshot bitte (Hell/Dunkel egal)',
+            const Text('🔬 DEBUG 4 – Rohdaten /system (bitte Screenshot)',
                 style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            const Text('G1) Feld allein:'),
             const SizedBox(height: 4),
-            field(),
-            const SizedBox(height: 16),
-            const Text('G2) GLEICHES Feld in Card + ExpansionTile (wie echt):'),
-            const SizedBox(height: 4),
-            Card(
-              child: ExpansionTile(
-                initiallyExpanded: true,
-                title: const Text('Gruppe'),
-                childrenPadding: const EdgeInsets.only(bottom: 6),
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                    child: field(),
-                  ),
-                ],
-              ),
-            ),
+            const Text('(WLAN-Passwörter o.ä. sind maskiert)',
+                style: TextStyle(fontSize: 11)),
+            const SizedBox(height: 8),
+            ...rows,
+            if (rows.isEmpty) const Text('/system ist LEER!'),
           ],
         ),
       ),
