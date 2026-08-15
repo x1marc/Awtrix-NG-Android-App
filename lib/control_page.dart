@@ -53,7 +53,9 @@ class _ControlPageState extends State<ControlPage> {
             TextField(
               controller: _textC,
               decoration: const InputDecoration(
-                  labelText: 'Text', border: OutlineInputBorder()),
+                  labelText: 'Text',
+                  filled: false,
+                  border: OutlineInputBorder()),
             ),
             const SizedBox(height: 10),
             Wrap(

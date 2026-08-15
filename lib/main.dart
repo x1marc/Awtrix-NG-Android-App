@@ -64,10 +64,6 @@ class AwtrixApp extends StatelessWidget {
 
   ThemeData _theme(Brightness b) {
     final dark = b == Brightness.dark;
-    // WICHTIG: DECKENDE Füllfarbe. Eine transparente/fehlende Füllung ließ
-    // auf MIUI/HyperOS die graue Karten-/System-Farbe durchscheinen -> Felder
-    // sahen grau/deaktiviert aus. Eine opake Farbe übermalt das komplett.
-    final fieldFill = dark ? const Color(0xFF15151B) : Colors.white;
     final fieldBorder = dark ? Colors.white24 : Colors.black26;
     OutlineInputBorder ob(Color c, [double w = 1]) => OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
@@ -77,9 +73,11 @@ class AwtrixApp extends StatelessWidget {
       useMaterial3: true,
       brightness: b,
       colorSchemeSeed: const Color(0xFFFFC107), // AWTRIX-Gelb
+      // WICHTIG: filled:false. Eine GEFÜLLTE Dekoration zeigt auf MIUI/HyperOS
+      // das Material-3-Grau (auch bei gesetzter Füllfarbe). Nur Umrandung,
+      // keine Füllung -> kein Grau. (Bewährter Fix aus Build #4.)
       inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: fieldFill,
+        filled: false,
         isDense: true,
         border: ob(fieldBorder),
         enabledBorder: ob(fieldBorder),

@@ -144,7 +144,12 @@ bool _isPassword(String k) => k.toLowerCase().contains('pass');
 bool _isRiskyGroup(String germanGroup) =>
     germanGroup == 'WLAN / Netzwerk' || germanGroup == 'GPIO';
 
-InputDecoration _deco({String? hint}) => InputDecoration(hintText: hint);
+InputDecoration _deco({String? hint}) => InputDecoration(
+      isDense: true,
+      filled: false, // KEIN Material-3-Grau
+      hintText: hint,
+      border: const OutlineInputBorder(),
+    );
 
 class SystemPage extends StatefulWidget {
   final AwtrixDevice device;

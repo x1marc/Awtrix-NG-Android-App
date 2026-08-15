@@ -7,8 +7,12 @@ import 'widgets.dart';
 
 /// Nutzt das globale inputDecorationTheme (umrandet, transparent gefüllt),
 /// nur die Einheit ergänzen.
-InputDecoration denseDeco({String? suffix}) =>
-    InputDecoration(suffixText: suffix);
+InputDecoration denseDeco({String? suffix}) => InputDecoration(
+      isDense: true,
+      filled: false, // KEIN Material-3-Grau
+      suffixText: suffix,
+      border: const OutlineInputBorder(),
+    );
 
 class SettingsPage extends StatefulWidget {
   final AwtrixDevice device;
@@ -361,6 +365,7 @@ class _SettingsPageState extends State<SettingsPage> {
               child: TextField(
                 decoration: const InputDecoration(
                   isDense: true,
+                  filled: false,
                   prefixIcon: Icon(Icons.search),
                   hintText: 'Einstellung suchen…',
                   border: OutlineInputBorder(),

@@ -73,11 +73,13 @@ class _HomePageState extends State<HomePage> {
               decoration: const InputDecoration(
                 labelText: 'IP oder Hostname',
                 hintText: '192.168.1.111',
+                filled: false,
               ),
             ),
             TextField(
               controller: nameC,
-              decoration: const InputDecoration(labelText: 'Name (optional)'),
+              decoration: const InputDecoration(
+                  labelText: 'Name (optional)', filled: false),
             ),
           ],
         ),

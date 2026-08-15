@@ -108,17 +108,19 @@ class _AppsPageState extends State<AppsPage> {
               controller: nameC,
               autofocus: true,
               decoration: const InputDecoration(
-                  labelText: 'App-Name (eindeutig)', hintText: 'z. B. info'),
+                  labelText: 'App-Name (eindeutig)',
+                  hintText: 'z. B. info',
+                  filled: false),
             ),
             TextField(
               controller: textC,
               decoration: const InputDecoration(
-                  labelText: 'Text', hintText: 'z. B. Hallo'),
+                  labelText: 'Text', hintText: 'z. B. Hallo', filled: false),
             ),
             TextField(
               controller: iconC,
-              decoration:
-                  const InputDecoration(labelText: 'Icon-Nummer (optional)'),
+              decoration: const InputDecoration(
+                  labelText: 'Icon-Nummer (optional)', filled: false),
             ),
           ]),
         ),

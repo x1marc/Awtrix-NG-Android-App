@@ -157,6 +157,7 @@ class _IconsPageState extends State<IconsPage> {
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
                       isDense: true,
+                      filled: false,
                       border: OutlineInputBorder(),
                       labelText: 'Icon-ID',
                       hintText: 'z. B. 2867',
