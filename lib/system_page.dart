@@ -386,8 +386,23 @@ class _SystemPageState extends State<SystemPage> {
     }
   }
 
-  // TEMPORÄR (Diagnose der grauen Felder): 4 isolierte Varianten. Ein
-  // Screenshot davon zeigt eindeutig, was das Grau verursacht.
+  // TEMPORÄR (Diagnose 2 – Bisektion): A repliziert das echte Feld exakt,
+  // B/C/D ändern je GENAU EINE Sache. Das grau-vs-sauber-Muster nennt die
+  // Ursache eindeutig.
+  Widget _dbgRow(String label, Widget field) => Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label,
+                style: const TextStyle(
+                    color: Colors.black, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 4),
+            field,
+          ],
+        ),
+      );
+
   Widget _debugFieldTest() {
     return Card(
       margin: const EdgeInsets.all(12),
@@ -396,51 +411,27 @@ class _SystemPageState extends State<SystemPage> {
         padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text('🔬 DEBUG – bitte NUR hiervon einen Screenshot schicken',
+          children: [
+            const Text('🔬 DEBUG 2 – bitte NUR hiervon einen Screenshot',
                 style:
                     TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
-            SizedBox(height: 10),
-            Text('1) filled:false + Rahmen', style: TextStyle(color: Colors.black)),
-            SizedBox(height: 4),
-            TextField(
-              decoration: InputDecoration(
-                  filled: false,
-                  border: OutlineInputBorder(),
-                  hintText: 'Test 1'),
-            ),
-            SizedBox(height: 12),
-            Text('2) Füllung ROT', style: TextStyle(color: Colors.black)),
-            SizedBox(height: 4),
-            TextField(
-              decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.red,
-                  border: OutlineInputBorder(),
-                  hintText: 'Test 2'),
-            ),
-            SizedBox(height: 12),
-            Text('3) collapsed in WEISS', style: TextStyle(color: Colors.black)),
-            SizedBox(height: 4),
-            ColoredBox(
-              color: Colors.white,
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-                child: TextField(
-                    decoration: InputDecoration.collapsed(hintText: 'Test 3')),
-              ),
-            ),
-            SizedBox(height: 12),
-            Text('4) GAR keine Dekoration (auf Weiß)',
-                style: TextStyle(color: Colors.black)),
-            SizedBox(height: 4),
-            ColoredBox(
-              color: Colors.white,
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-                child: TextField(decoration: null),
-              ),
-            ),
+            const SizedBox(height: 10),
+            _dbgRow(
+                'A) wie echtes Feld: Höhe46 + Form + Wert',
+                SizedBox(
+                    height: 46,
+                    child: TextFormField(
+                        initialValue: '192.168.178.1', decoration: _deco()))),
+            _dbgRow(
+                'B) OHNE feste Höhe (Form + Wert)',
+                TextFormField(
+                    initialValue: '192.168.178.1', decoration: _deco())),
+            _dbgRow(
+                'C) Höhe46 + Form, OHNE Wert',
+                SizedBox(
+                    height: 46, child: TextFormField(decoration: _deco()))),
+            _dbgRow('D) Höhe46 + TextField (keine Form)',
+                SizedBox(height: 46, child: TextField(decoration: _deco()))),
           ],
         ),
       ),
