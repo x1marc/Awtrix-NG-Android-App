@@ -128,7 +128,6 @@ const Map<String, String> _fieldLabels = {
   'panelSerpentine': 'Serpentine',
   'panelStart': 'Erste LED',
   'panelWidth': 'Panel-Breite',
-  'panels': 'Anzahl Panels',
   'wifiSsid': 'WLAN-Name',
   'wifiPass': 'WLAN-Passwort',
   'statsInterval': 'Stats-Intervall',
