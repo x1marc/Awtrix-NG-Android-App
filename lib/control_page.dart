@@ -4,7 +4,10 @@ import 'package:http/http.dart' as http;
 
 import 'api.dart';
 import 'color_picker.dart';
+import 'favorites.dart';
 import 'matrix_preview.dart';
+import 'notify_page.dart';
+import 'sensors.dart';
 import 'widgets.dart';
 
 class ControlPage extends StatefulWidget {
@@ -24,6 +27,15 @@ class _ControlPageState extends State<ControlPage> {
   double _moodBright = 120;
   String _overlay = 'off';
   bool _busy = false;
+  List<String> _moodFavs = [];
+
+  @override
+  void initState() {
+    super.initState();
+    FavStore.moodColors().then((c) {
+      if (mounted) setState(() => _moodFavs = c);
+    });
+  }
 
   Future<void> _run(Future<http.Response> Function() f, String ok) async {
     setState(() => _busy = true);
@@ -44,6 +56,7 @@ class _ControlPageState extends State<ControlPage> {
       children: [
         if (_busy) const LinearProgressIndicator(minHeight: 2),
         MatrixPreview(api: api, active: widget.active),
+        SensorsCard(api: api),
 
         // --- Benachrichtigung ---
         SectionCard(
@@ -101,6 +114,18 @@ class _ControlPageState extends State<ControlPage> {
                 child: const Text('Wegwischen'),
               ),
             ]),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => NotifyPage(device: widget.device)),
+                ),
+                icon: const Icon(Icons.tune, size: 18),
+                label: const Text('Erweitert (Icon, Effekte, Sound, Vorlagen)…'),
+              ),
+            ),
           ],
         ),
 
@@ -216,6 +241,18 @@ class _ControlPageState extends State<ControlPage> {
               spacing: 6,
               runSpacing: 6,
               children: [
+                for (final hex in _moodFavs)
+                  ActionChip(
+                    avatar: CircleAvatar(
+                        radius: 9, backgroundColor: hexToColor(hex)),
+                    label: const Text('★'),
+                    onPressed: _busy
+                        ? null
+                        : () => _run(
+                            () => api.moodlight(rgbFromHex(hex),
+                                brightness: _moodBright.round()),
+                            'Moodlight'),
+                  ),
                 for (final e in kColors.entries)
                   ActionChip(
                     avatar: CircleAvatar(
@@ -236,6 +273,8 @@ class _ControlPageState extends State<ControlPage> {
                       : () async {
                           final hex = await pickColor(context);
                           if (hex != null) {
+                            final favs = await FavStore.addMoodColor(hex);
+                            if (mounted) setState(() => _moodFavs = favs);
                             _run(
                                 () => api.moodlight(rgbFromHex(hex),
                                     brightness: _moodBright.round()),

@@ -105,6 +105,10 @@ class AwtrixApi {
 
   Future<http.Response> dismiss() => _send('DELETE', '/notifications/active');
 
+  /// Benachrichtigung mit frei zusammengestelltem Body (Composer).
+  Future<http.Response> sendNotification(Map<String, dynamic> body) =>
+      _send('POST', '/notifications', body: body);
+
   // --- Apps ---
   Future<http.Response> nextApp() => _send('POST', '/apps/next');
   Future<http.Response> prevApp() => _send('POST', '/apps/previous');
@@ -226,6 +230,15 @@ class AwtrixApi {
   Future<Map<String, dynamic>> getDevice() async {
     final d = _json(await _send('GET', '/device'));
     return d is Map ? d.cast<String, dynamic>() : {};
+  }
+
+  /// Live-Statistik/Sensoren (Temperatur, Feuchte, Helligkeit, Akku …).
+  Future<Map<String, dynamic>> getStats() async {
+    try {
+      final d = _json(await _send('GET', '/stats'));
+      if (d is Map) return d.cast<String, dynamic>();
+    } catch (_) {}
+    return {};
   }
 
   Future<Map<String, dynamic>> getSystem() async {

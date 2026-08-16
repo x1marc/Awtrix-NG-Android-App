@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'api.dart';
+import 'custom_app_page.dart';
+import 'pixel_editor_page.dart';
 import 'widgets.dart';
 
 class AppsPage extends StatefulWidget {
@@ -176,18 +178,39 @@ class _AppsPageState extends State<AppsPage> {
           ]),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(12, 0, 12, 2),
-          child: Row(children: [
-            const Expanded(
-              child: Text('Gedrückt halten & ziehen zum Sortieren',
-                  style: TextStyle(fontSize: 12, color: Colors.grey)),
-            ),
-            FilledButton.tonalIcon(
-              onPressed: _addApp,
-              icon: const Icon(Icons.add, size: 18),
-              label: const Text('App'),
-            ),
-          ]),
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 6),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: [
+              FilledButton.tonalIcon(
+                onPressed: _addApp,
+                icon: const Icon(Icons.add, size: 18),
+                label: const Text('Schnell-App'),
+              ),
+              OutlinedButton.icon(
+                onPressed: () async {
+                  final changed = await Navigator.push<bool>(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => CustomAppPage(device: widget.device)),
+                  );
+                  if (changed == true) _load();
+                },
+                icon: const Icon(Icons.dashboard_customize, size: 18),
+                label: const Text('Eigene App'),
+              ),
+              OutlinedButton.icon(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => PixelEditorPage(device: widget.device)),
+                ),
+                icon: const Icon(Icons.grid_on, size: 18),
+                label: const Text('Pixel malen'),
+              ),
+            ],
+          ),
         ),
         Expanded(
           child: _loading

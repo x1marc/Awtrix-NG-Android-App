@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'api.dart';
 import 'widgets.dart';
@@ -104,6 +105,36 @@ class _IconsPageState extends State<IconsPage> {
     }
   }
 
+  Widget _lametricPreview(String id) {
+    if (id.isEmpty) {
+      return Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          color: Colors.black12,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: const Icon(Icons.image_outlined, color: Colors.grey),
+      );
+    }
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(6),
+      child: Image.network(
+        'https://developer.lametric.com/content/apps/icon_thumbs/$id',
+        width: 48,
+        height: 48,
+        fit: BoxFit.contain,
+        gaplessPlayback: true,
+        errorBuilder: (_, __, ___) => Container(
+          width: 48,
+          height: 48,
+          color: Colors.black12,
+          child: const Icon(Icons.broken_image, size: 20, color: Colors.grey),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) return const Center(child: CircularProgressIndicator());
@@ -151,10 +182,13 @@ class _IconsPageState extends State<IconsPage> {
               ),
               const SizedBox(height: 8),
               Row(children: [
+                _lametricPreview(_idC.text.trim()),
+                const SizedBox(width: 10),
                 Expanded(
                   child: TextField(
                     controller: _idC,
                     keyboardType: TextInputType.number,
+                    onChanged: (_) => setState(() {}),
                     decoration: const InputDecoration(
                       isDense: true,
                       filled: false,
@@ -175,6 +209,16 @@ class _IconsPageState extends State<IconsPage> {
                       : const Text('Laden'),
                 ),
               ]),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: () => launchUrl(
+                      Uri.parse('https://developer.lametric.com/icons'),
+                      mode: LaunchMode.externalApplication),
+                  icon: const Icon(Icons.open_in_new, size: 16),
+                  label: const Text('Icon-Galerie öffnen'),
+                ),
+              ),
             ],
           ),
           Padding(

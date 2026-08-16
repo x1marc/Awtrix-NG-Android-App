@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'api.dart';
+import 'backup.dart';
 import 'settings_catalog.dart' show prettifyKey;
 import 'widgets.dart';
 
@@ -492,6 +493,16 @@ class _SystemPageState extends State<SystemPage> {
                       onPressed: _load,
                       icon: const Icon(Icons.refresh),
                       label: const Text('Neu laden'),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: () => backupExport(context, api),
+                      icon: const Icon(Icons.save_alt),
+                      label: const Text('Backup'),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: () => backupImport(context, api, _load),
+                      icon: const Icon(Icons.restore),
+                      label: const Text('Wiederherstellen'),
                     ),
                   ],
                 ),

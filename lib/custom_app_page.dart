@@ -1,0 +1,228 @@
+import 'package:flutter/material.dart';
+
+import 'api.dart';
+import 'color_picker.dart';
+import 'widgets.dart';
+
+/// Baut eine dauerhafte „eigene App" (bleibt in der Uhr-Rotation).
+class CustomAppPage extends StatefulWidget {
+  final AwtrixDevice device;
+  const CustomAppPage({super.key, required this.device});
+
+  @override
+  State<CustomAppPage> createState() => _CustomAppPageState();
+}
+
+class _CustomAppPageState extends State<CustomAppPage> {
+  late final AwtrixApi api = AwtrixApi(widget.device);
+  final _name = TextEditingController(text: 'meineapp');
+  final _text = TextEditingController(text: 'Hallo');
+  final _icon = TextEditingController();
+  List<int> _color = const [0, 200, 255];
+  double _duration = 7;
+  double _scroll = 100;
+  bool _rainbow = false;
+  bool _busy = false;
+
+  Map<String, dynamic> _body() => {
+        'text': _text.text,
+        'textColor': _color,
+        if (_icon.text.trim().isNotEmpty) 'icon': _icon.text.trim(),
+        if (_rainbow) 'rainbow': true,
+        if (_duration > 0) 'duration': _duration.round(),
+        if (_scroll != 100) 'scrollSpeed': _scroll.round(),
+      };
+
+  Future<void> _create() async {
+    final name = _name.text.trim();
+    if (name.isEmpty) {
+      snack(context, 'Bitte einen App-Namen angeben');
+      return;
+    }
+    setState(() => _busy = true);
+    try {
+      final r = await api.pushApp(name, _body());
+      if (r.statusCode >= 200 && r.statusCode < 300) {
+        snack(context, 'App „$name" erstellt');
+        if (mounted) Navigator.pop(context, true);
+      } else {
+        snack(context, 'Uhr lehnte ab (${r.statusCode})');
+      }
+    } catch (_) {
+      snack(context, 'Uhr nicht erreichbar');
+    }
+    if (mounted) setState(() => _busy = false);
+  }
+
+  Future<void> _delete() async {
+    final name = _name.text.trim();
+    if (name.isEmpty) return;
+    setState(() => _busy = true);
+    try {
+      await api.deleteApp(name);
+      snack(context, 'App „$name" gelöscht');
+      if (mounted) Navigator.pop(context, true);
+    } catch (_) {
+      snack(context, 'Nicht erreichbar');
+    }
+    if (mounted) setState(() => _busy = false);
+  }
+
+  Future<void> _pickIcon() async {
+    List<String> names = [];
+    try {
+      final data = await api.getFiles('/ICONS');
+      final files = data['files'];
+      if (files is List) {
+        names = files
+            .whereType<Map>()
+            .map((e) => '${e['name']}')
+            .where((n) => n.isNotEmpty)
+            .toList();
+      }
+    } catch (_) {}
+    if (!mounted) return;
+    if (names.isEmpty) {
+      snack(context, 'Keine Icons auf der Uhr gefunden');
+      return;
+    }
+    final sel = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (_) => ListView(
+        children: [
+          for (final n in names)
+            ListTile(
+              leading: const Icon(Icons.image_outlined),
+              title: Text(n),
+              onTap: () => Navigator.pop(context, n),
+            ),
+        ],
+      ),
+    );
+    if (sel != null) {
+      final base =
+          sel.contains('.') ? sel.substring(0, sel.lastIndexOf('.')) : sel;
+      setState(() => _icon.text = base);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Eigene App')),
+      body: ListView(
+        padding: const EdgeInsets.all(12),
+        children: [
+          if (_busy) const LinearProgressIndicator(minHeight: 2),
+          SectionCard(
+            title: 'App',
+            icon: Icons.apps,
+            children: [
+              TextField(
+                controller: _name,
+                decoration: const InputDecoration(
+                    labelText: 'App-Name (eindeutig)',
+                    helperText: 'Gleicher Name = App aktualisieren',
+                    filled: false,
+                    border: OutlineInputBorder()),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: _text,
+                decoration: const InputDecoration(
+                    labelText: 'Text', filled: false, border: OutlineInputBorder()),
+              ),
+              const SizedBox(height: 10),
+              Row(children: [
+                Expanded(
+                  child: TextField(
+                    controller: _icon,
+                    decoration: const InputDecoration(
+                        labelText: 'Icon (Name oder ID, optional)',
+                        filled: false,
+                        border: OutlineInputBorder()),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton.icon(
+                  onPressed: _pickIcon,
+                  icon: const Icon(Icons.image_search, size: 18),
+                  label: const Text('Wählen'),
+                ),
+              ]),
+              const SizedBox(height: 10),
+              Wrap(spacing: 6, runSpacing: 6, children: [
+                for (final e in kColors.entries)
+                  ChoiceChip(
+                    label: Text(e.key),
+                    selected: _color == e.value,
+                    onSelected: (_) => setState(() => _color = e.value),
+                  ),
+                ActionChip(
+                  avatar: CircleAvatar(radius: 9, backgroundColor: rgb(_color)),
+                  label: const Text('Eigene…'),
+                  onPressed: () async {
+                    final hex = await pickColor(context,
+                        initialHex: colorToHex(rgb(_color)));
+                    if (hex != null) setState(() => _color = rgbFromHex(hex));
+                  },
+                ),
+              ]),
+            ],
+          ),
+          SectionCard(
+            title: 'Darstellung',
+            icon: Icons.tune,
+            children: [
+              SwitchListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Regenbogen-Text'),
+                value: _rainbow,
+                onChanged: (v) => setState(() => _rainbow = v),
+              ),
+              _slider('Anzeigedauer', '${_duration.round()} s', _duration, 1, 30,
+                  (v) => setState(() => _duration = v)),
+              _slider('Scroll-Tempo',
+                  _scroll == 100 ? 'Standard' : '${_scroll.round()} %', _scroll,
+                  10, 200, (v) => setState(() => _scroll = v)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(children: [
+            Expanded(
+              child: FilledButton.icon(
+                onPressed: _busy ? null : _create,
+                icon: const Icon(Icons.check),
+                label: const Text('Erstellen / Aktualisieren'),
+              ),
+            ),
+            const SizedBox(width: 8),
+            OutlinedButton.icon(
+              onPressed: _busy ? null : _delete,
+              icon: const Icon(Icons.delete_outline),
+              label: const Text('Löschen'),
+            ),
+          ]),
+          const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
+
+  Widget _slider(String label, String value, double v, double min, double max,
+      ValueChanged<double> on) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(children: [
+          Expanded(child: Text(label)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
+        ]),
+        Slider(
+            value: v.clamp(min, max).toDouble(), min: min, max: max, onChanged: on),
+      ],
+    );
+  }
+}

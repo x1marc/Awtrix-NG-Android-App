@@ -149,13 +149,106 @@ class _HomePageState extends State<HomePage> {
     setState(() {});
   }
 
+  Future<void> _broadcast() async {
+    final c = TextEditingController(text: 'Hallo!');
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('An alle Uhren senden'),
+        content: TextField(
+          controller: c,
+          autofocus: true,
+          decoration: const InputDecoration(
+              labelText: 'Text', filled: false, border: OutlineInputBorder()),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Abbrechen')),
+          FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Senden')),
+        ],
+      ),
+    );
+    if (ok != true || c.text.trim().isEmpty) return;
+    var n = 0;
+    for (final d in _devices) {
+      try {
+        await AwtrixApi(d).notify(c.text.trim());
+        n++;
+      } catch (_) {}
+    }
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('An $n von ${_devices.length} Uhren gesendet')));
+    }
+  }
+
+  void _showHelp() {
+    showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Hilfe & Tipps'),
+        content: const SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('• Uhr finden: im selben WLAN unten „Uhr suchen" – '
+                  'oder oben mit + per IP hinzufügen.'),
+              SizedBox(height: 8),
+              Text('• Login: Wenn die Uhr Benutzer/Passwort verlangt, '
+                  'in der Liste auf ✏️ tippen und eintragen.'),
+              SizedBox(height: 8),
+              Text('• Steuern: Benachrichtigungen (mit „Erweitert" für Icon, '
+                  'Effekte, Sound, Vorlagen), Apps, Stimmungslicht, Status-LEDs.'),
+              SizedBox(height: 8),
+              Text('• Apps: „Eigene App" für eine dauerhafte App, '
+                  '„Pixel malen" für eigene Bilder.'),
+              SizedBox(height: 8),
+              Text('• System → Wartung: Backup exportieren/wiederherstellen, '
+                  'Neustart, Werksreset.'),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              showSupportSheet(context);
+            },
+            child: const Text('Projekte / Kaffee ☕'),
+          ),
+          FilledButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Alles klar')),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Awtrix NG App'),
-        actions: const [BmcButton(), ThemeToggleButton()],
+        actions: [
+          IconButton(
+            tooltip: 'Hilfe',
+            icon: const Icon(Icons.help_outline),
+            onPressed: _showHelp,
+          ),
+          if (_devices.isNotEmpty)
+            IconButton(
+              tooltip: 'An alle senden',
+              icon: const Icon(Icons.campaign),
+              onPressed: _broadcast,
+            ),
+          const BmcButton(),
+          const ThemeToggleButton(),
+        ],
       ),
       body: _devices.isEmpty
           ? Padding(
