@@ -362,17 +362,14 @@ class _SettingsPageState extends State<SettingsPage> {
                   for (var gi = 0; gi < groupsInOrder.length; gi++)
                     Card(
                       margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                      child: CollapsibleSection(
+                        initiallyExpanded: gi == 0,
+                        forceExpanded: _filter.isNotEmpty ? true : null,
+                        title: Text(groupsInOrder[gi],
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16)),
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 2),
-                            child: Text(groupsInOrder[gi],
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 16)),
-                          ),
                           for (final k in grouped[groupsInOrder[gi]]!) _row(k),
-                          const SizedBox(height: 6),
                         ],
                       ),
                     ),

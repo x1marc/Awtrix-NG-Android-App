@@ -140,7 +140,13 @@ const Map<String, String> _fieldLabels = {
 };
 
 String _fieldLabel(String k) => _fieldLabels[k] ?? prettifyKey(k);
-bool _isPassword(String k) => k.toLowerCase().contains('pass');
+bool _isPassword(String k) {
+  final lk = k.toLowerCase();
+  return lk.contains('pass') ||
+      lk.contains('psk') ||
+      lk.contains('secret') ||
+      lk.contains('token');
+}
 bool _isRiskyGroup(String germanGroup) =>
     germanGroup == 'WLAN / Netzwerk' || germanGroup == 'GPIO';
 
@@ -434,38 +440,20 @@ class _SystemPageState extends State<SystemPage> {
             for (var gi = 0; gi < orderedGroups.length; gi++)
               Card(
                 margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                child: CollapsibleSection(
+                  initiallyExpanded: gi == 0,
+                  leading: _isRiskyGroup(orderedGroups[gi])
+                      ? const Icon(Icons.warning_amber, color: Colors.orange)
+                      : null,
+                  title: Text(orderedGroups[gi],
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 16)),
+                  subtitle: _isRiskyGroup(orderedGroups[gi])
+                      ? const Text('Vorsicht – kann die Uhr trennen',
+                          style: TextStyle(fontSize: 12))
+                      : null,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 2),
-                      child: Row(
-                        children: [
-                          if (_isRiskyGroup(orderedGroups[gi]))
-                            const Padding(
-                              padding: EdgeInsets.only(right: 8),
-                              child: Icon(Icons.warning_amber,
-                                  color: Colors.orange),
-                            ),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(orderedGroups[gi],
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16)),
-                                if (_isRiskyGroup(orderedGroups[gi]))
-                                  const Text('Vorsicht – kann die Uhr trennen',
-                                      style: TextStyle(fontSize: 12)),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                     for (final fk in grouped[orderedGroups[gi]]!) _fieldRow(fk),
-                    const SizedBox(height: 6),
                   ],
                 ),
               ),

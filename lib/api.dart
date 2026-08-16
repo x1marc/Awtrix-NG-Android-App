@@ -204,7 +204,9 @@ class AwtrixApi {
   }
 
   Future<Map<String, dynamic>> getSystem() async {
-    final d = _json(await _send('GET', '/system'));
+    // secrets=1 -> Passwortfelder (WLAN/MQTT/Webserver) werden mitgeliefert,
+    // sonst lässt die Firmware sie weg und man kann sie nicht setzen.
+    final d = _json(await _send('GET', '/system?secrets=1'));
     return d is Map ? d.cast<String, dynamic>() : {};
   }
 
