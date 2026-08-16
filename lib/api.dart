@@ -10,18 +10,39 @@ class AwtrixDevice {
   String host; // IP oder Hostname (z. B. 192.168.1.111 oder awtrixng-a1b2c3.local)
   int port;
   String name;
+  String? user; // optional: Webserver-Benutzer (Basic Auth)
+  String? pass; // optional: Webserver-Passwort (Basic Auth)
 
-  AwtrixDevice({required this.host, this.port = 80, String? name})
-      : name = (name == null || name.trim().isEmpty) ? host : name.trim();
+  AwtrixDevice({
+    required this.host,
+    this.port = 80,
+    String? name,
+    this.user,
+    this.pass,
+  }) : name = (name == null || name.trim().isEmpty) ? host : name.trim();
 
   String get base => 'http://$host${port == 80 ? '' : ':$port'}';
 
-  Map<String, dynamic> toJson() => {'host': host, 'port': port, 'name': name};
+  /// Basic-Auth-Header, falls ein Benutzer gesetzt ist – sonst null.
+  String? get authHeader {
+    if (user == null || user!.isEmpty) return null;
+    return 'Basic ${base64Encode(utf8.encode('$user:${pass ?? ''}'))}';
+  }
+
+  Map<String, dynamic> toJson() => {
+        'host': host,
+        'port': port,
+        'name': name,
+        if (user != null && user!.isNotEmpty) 'user': user,
+        if (pass != null && pass!.isNotEmpty) 'pass': pass,
+      };
 
   factory AwtrixDevice.fromJson(Map<String, dynamic> j) => AwtrixDevice(
         host: j['host'] as String,
         port: (j['port'] as int?) ?? 80,
         name: j['name'] as String?,
+        user: j['user'] as String?,
+        pass: j['pass'] as String?,
       );
 }
 
@@ -45,6 +66,8 @@ class AwtrixApi {
     try {
       final req = http.Request(method, _u(path));
       req.headers['Content-Type'] = 'application/json';
+      final auth = device.authHeader;
+      if (auth != null) req.headers['Authorization'] = auth;
       if (body != null) req.body = jsonEncode(body);
       final streamed = await client.send(req).timeout(const Duration(seconds: 6));
       return await http.Response.fromStream(streamed);
@@ -149,8 +172,10 @@ class AwtrixApi {
   /// schnelle Live-Vorschau (viele Abfragen pro Sekunde).
   Future<ScreenData?> getScreenVia(http.Client client) async {
     try {
+      final auth = device.authHeader;
       final r = await client
-          .get(Uri.parse('${device.base}/api/v1/display/screen'))
+          .get(Uri.parse('${device.base}/api/v1/display/screen'),
+              headers: auth == null ? null : {'Authorization': auth})
           .timeout(const Duration(seconds: 2));
       if (r.statusCode == 200) return _parseScreen(jsonDecode(r.body));
     } catch (_) {}
@@ -231,6 +256,8 @@ class AwtrixApi {
       String dir, String filename, List<int> bytes) async {
     final req = http.MultipartRequest(
         'POST', Uri.parse('${device.base}/api/v1/files?dir=$dir'));
+    final auth = device.authHeader;
+    if (auth != null) req.headers['Authorization'] = auth;
     req.files
         .add(http.MultipartFile.fromBytes('file', bytes, filename: filename));
     final s = await req.send().timeout(const Duration(seconds: 15));

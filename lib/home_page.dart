@@ -57,47 +57,96 @@ class _HomePageState extends State<HomePage> {
     ));
   }
 
-  Future<void> _addByIp() async {
-    final ipC = TextEditingController();
-    final nameC = TextEditingController();
+  Future<void> _deviceDialog({AwtrixDevice? existing}) async {
+    final editing = existing != null;
+    final ipC = TextEditingController(text: existing?.host ?? '');
+    final nameC = TextEditingController(
+        text: (editing && existing.name != existing.host) ? existing.name : '');
+    final userC = TextEditingController(text: existing?.user ?? '');
+    final passC = TextEditingController(text: existing?.pass ?? '');
+    var showPass = false;
     final ok = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Uhr per IP hinzufügen'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: ipC,
-              autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'IP oder Hostname',
-                hintText: '192.168.1.111',
-                filled: false,
-              ),
+      builder: (_) => StatefulBuilder(
+        builder: (context, setLocal) => AlertDialog(
+          title: Text(editing ? 'Uhr bearbeiten' : 'Uhr hinzufügen'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: ipC,
+                  autofocus: !editing,
+                  decoration: const InputDecoration(
+                    labelText: 'IP oder Hostname',
+                    hintText: '192.168.1.111',
+                    filled: false,
+                  ),
+                ),
+                TextField(
+                  controller: nameC,
+                  decoration: const InputDecoration(
+                      labelText: 'Name (optional)', filled: false),
+                ),
+                const SizedBox(height: 12),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text('Nur falls die Uhr einen Login verlangt:',
+                      style: TextStyle(fontSize: 12)),
+                ),
+                TextField(
+                  controller: userC,
+                  decoration: const InputDecoration(
+                      labelText: 'Benutzer (optional)', filled: false),
+                ),
+                TextField(
+                  controller: passC,
+                  obscureText: !showPass,
+                  decoration: InputDecoration(
+                    labelText: 'Passwort (optional)',
+                    filled: false,
+                    suffixIcon: IconButton(
+                      icon: Icon(showPass
+                          ? Icons.visibility_off
+                          : Icons.visibility),
+                      onPressed: () => setLocal(() => showPass = !showPass),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            TextField(
-              controller: nameC,
-              decoration: const InputDecoration(
-                  labelText: 'Name (optional)', filled: false),
-            ),
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Abbrechen')),
+            FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(editing ? 'Speichern' : 'Hinzufügen')),
           ],
         ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Abbrechen')),
-          FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Hinzufügen')),
-        ],
       ),
     );
-    if (ok == true && ipC.text.trim().isNotEmpty) {
-      _devices.add(AwtrixDevice(host: ipC.text.trim(), name: nameC.text.trim()));
-      await _persist();
-      setState(() {});
+    if (ok != true || ipC.text.trim().isEmpty) return;
+    final host = ipC.text.trim();
+    final name = nameC.text.trim();
+    final user = userC.text.trim();
+    final pass = passC.text;
+    if (editing) {
+      existing.host = host;
+      existing.name = name.isEmpty ? host : name;
+      existing.user = user.isEmpty ? null : user;
+      existing.pass = pass.isEmpty ? null : pass;
+    } else {
+      _devices.add(AwtrixDevice(
+        host: host,
+        name: name,
+        user: user.isEmpty ? null : user,
+        pass: pass.isEmpty ? null : pass,
+      ));
     }
+    await _persist();
+    setState(() {});
   }
 
   @override
@@ -152,13 +201,25 @@ class _HomePageState extends State<HomePage> {
                             builder: (_) =>
                                 DeviceShell(device: _devices[i])),
                       ),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete_outline),
-                        onPressed: () async {
-                          _devices.removeAt(i);
-                          await _persist();
-                          setState(() {});
-                        },
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit_outlined),
+                            tooltip: 'Bearbeiten (Login)',
+                            onPressed: () =>
+                                _deviceDialog(existing: _devices[i]),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline),
+                            tooltip: 'Entfernen',
+                            onPressed: () async {
+                              _devices.removeAt(i);
+                              await _persist();
+                              setState(() {});
+                            },
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -177,7 +238,7 @@ class _HomePageState extends State<HomePage> {
         children: [
           FloatingActionButton.small(
             heroTag: 'ip',
-            onPressed: _addByIp,
+            onPressed: () => _deviceDialog(),
             child: const Icon(Icons.add),
           ),
           const SizedBox(width: 12),
