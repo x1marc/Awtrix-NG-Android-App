@@ -49,15 +49,13 @@ class _PixelEditorPageState extends State<PixelEditorPage> {
     if (_px[i] != v) setState(() => _px[i] = v);
   }
 
-  List<Map<String, dynamic>> _draw() {
-    final out = <Map<String, dynamic>>[];
+  List<List<dynamic>> _draw() {
+    final out = <List<dynamic>>[];
     for (var y = 0; y < _h; y++) {
       for (var x = 0; x < _w; x++) {
         final v = _px[y * _w + x] & 0xFFFFFF;
         if (v != 0) {
-          out.add({
-            'dp': [x, y, '#${v.toRadixString(16).padLeft(6, '0')}']
-          });
+          out.add(['pixel', x, y, '#${v.toRadixString(16).padLeft(6, '0')}']);
         }
       }
     }
@@ -69,8 +67,7 @@ class _PixelEditorPageState extends State<PixelEditorPage> {
     try {
       final r = await api.pushApp('pixelart', {
         'draw': _draw(),
-        'duration': 15,
-        'noScroll': true,
+        'durationMs': 15000,
       });
       _report(r.statusCode, 'Als App „pixelart" gespeichert');
     } catch (_) {

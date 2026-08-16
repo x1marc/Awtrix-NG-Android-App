@@ -24,14 +24,22 @@ class _CustomAppPageState extends State<CustomAppPage> {
   bool _rainbow = false;
   bool _busy = false;
 
-  Map<String, dynamic> _body() => {
-        'text': _text.text,
-        'textColor': _color,
-        if (_icon.text.trim().isNotEmpty) 'icon': _icon.text.trim(),
-        if (_rainbow) 'rainbow': true,
-        if (_duration > 0) 'duration': _duration.round(),
-        if (_scroll != 100) 'scrollSpeed': _scroll.round(),
-      };
+  Map<String, dynamic> _body() {
+    final b = <String, dynamic>{
+      'text': _text.text,
+      if (_icon.text.trim().isNotEmpty) 'icon': _icon.text.trim(),
+      if (_duration > 0) 'durationMs': (_duration * 1000).round(),
+    };
+    if (_rainbow) {
+      b['textColor'] = 'palette';
+      b['palette'] = 'rainbow';
+      b['paletteBlend'] = true;
+    } else {
+      b['textColor'] = _color;
+    }
+    if (_scroll != 100) b['scroll'] = {'speed': _scroll.round()};
+    return b;
+  }
 
   Future<void> _create() async {
     final name = _name.text.trim();

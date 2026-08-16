@@ -38,21 +38,29 @@ class _NotifyPageState extends State<NotifyPage> {
     FavStore.notifyPresets().then((p) => setState(() => _presets = p));
   }
 
-  Map<String, dynamic> _body() => {
-        'text': _text.text,
-        'textColor': _color,
-        if (_icon.text.trim().isNotEmpty) 'icon': _icon.text.trim(),
-        if (_duration > 0) 'durationMs': (_duration * 1000).round(),
-        if (_hold) 'hold': true,
-        if (_rainbow) 'rainbow': true,
-        if (_blink) 'blinkText': 800,
-        if (_fade) 'fadeText': 800,
-        if (_stack) 'stack': true,
-        if (_wakeup) 'wakeup': true,
-        if (_scroll != 100) 'scrollSpeed': _scroll.round(),
-        if (_progress >= 0) 'progress': _progress.round(),
-        if (_sound.text.trim().isNotEmpty) 'sound': _sound.text.trim(),
-      };
+  Map<String, dynamic> _body() {
+    final b = <String, dynamic>{
+      'text': _text.text,
+      'stack': _stack,
+      if (_icon.text.trim().isNotEmpty) 'icon': _icon.text.trim(),
+      if (_duration > 0) 'durationMs': (_duration * 1000).round(),
+      if (_hold) 'hold': true,
+      if (_wakeup) 'wakeup': true,
+      if (_blink) 'textBlinkMs': 800,
+      if (_fade) 'textFadeMs': 800,
+      if (_progress >= 0) 'progress': _progress.round(),
+      if (_sound.text.trim().isNotEmpty) 'soundRtttl': _sound.text.trim(),
+    };
+    if (_rainbow) {
+      b['textColor'] = 'palette';
+      b['palette'] = 'rainbow';
+      b['paletteBlend'] = true;
+    } else {
+      b['textColor'] = _color;
+    }
+    if (_scroll != 100) b['scroll'] = {'speed': _scroll.round()};
+    return b;
+  }
 
   Future<void> _send() async {
     setState(() => _busy = true);

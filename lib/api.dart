@@ -92,7 +92,6 @@ class AwtrixApi {
     String? icon,
     int? durationS,
     bool? hold,
-    bool? rainbow,
   }) =>
       _send('POST', '/notifications', body: {
         'text': text,
@@ -100,7 +99,6 @@ class AwtrixApi {
         if (icon != null && icon.isNotEmpty) 'icon': icon,
         if (durationS != null) 'durationMs': durationS * 1000,
         if (hold != null) 'hold': hold,
-        if (rainbow != null && rainbow) 'rainbow': true,
       });
 
   Future<http.Response> dismiss() => _send('DELETE', '/notifications/active');
