@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'api.dart';
+import 'lametric_browser_page.dart';
 import 'widgets.dart';
 
 class IconsPage extends StatefulWidget {
@@ -174,13 +175,23 @@ class _IconsPageState extends State<IconsPage> {
             title: 'LaMetric-Icon laden',
             icon: Icons.download,
             children: [
-              Text(
-                'Icon-ID von developer.lametric.com/icons eingeben. '
-                'Experimentell – falls die Größe nicht passt, nutze die '
-                'Web-Oberfläche der Uhr.',
-                style: Theme.of(context).textTheme.bodySmall,
+              FilledButton.icon(
+                onPressed: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) =>
+                            LametricBrowserPage(device: widget.device)),
+                  );
+                  _load();
+                },
+                icon: const Icon(Icons.search),
+                label: const Text('Galerie durchsuchen & direkt laden'),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
+              Text('… oder eine Icon-ID direkt eingeben:',
+                  style: Theme.of(context).textTheme.bodySmall),
+              const SizedBox(height: 6),
               Row(children: [
                 _lametricPreview(_idC.text.trim()),
                 const SizedBox(width: 10),

@@ -32,8 +32,8 @@ MQTT-Broker. Die App spricht direkt die lokale **HTTP-API** der Uhr (`/api/v1/�
 - ◀ ▶ **Apps** blättern, **aktivieren/deaktivieren, sortieren (ziehen), löschen**
 - 🧩 **Eigene App bauen:** dauerhafte App mit Text, Icon, Farbe, Regenbogen, Dauer, Tempo
 - 🎨 **Pixel-Editor:** direkt auf der 8×32-Matrix malen und als App speichern oder kurz anzeigen
-- 🖼️ **Icons:** gespeicherte Icons verwalten, **LaMetric-Icon mit Live-Vorschau** laden,
-  Galerie-Link, Speicherbelegung
+- 🖼️ **Icons:** gespeicherte Icons verwalten, **LaMetric-Galerie direkt in der App
+  durchsuchen** und per Tipp auf die Uhr laden (oder per ID mit Live-Vorschau), Speicherbelegung
 
 ### Einstellungen & System
 - ⚙️ **Alle Einstellungen** mit verständlichen Texten, Reglern, Farbwählern und **Suche**

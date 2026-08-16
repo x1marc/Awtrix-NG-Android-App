@@ -288,6 +288,35 @@ Future<List<int>?> fetchLametricIcon(String id) async {
   return null;
 }
 
+/// Durchsucht die LaMetric-Icon-Galerie. Gibt [{id, name, thumb}] zurück
+/// (thumb = absolute Vorschau-URL).
+Future<List<Map<String, dynamic>>> searchLametricIcons(String query,
+    {int page = 1, int count = 60}) async {
+  final q = query.trim();
+  final uri = Uri.parse(
+      'https://developer.lametric.com/api/v1/dev/preloadicons'
+      '?page=$page&count=$count&guest_icons=true'
+      '${q.isEmpty ? '' : '&search=${Uri.encodeQueryComponent(q)}'}');
+  try {
+    final r = await http.get(uri).timeout(const Duration(seconds: 15));
+    if (r.statusCode == 200) {
+      final d = jsonDecode(r.body);
+      final list = (d is Map && d['icons'] is List) ? d['icons'] as List : const [];
+      return list.whereType<Map>().map((e) {
+        final thumb = '${e['thumbnail_image'] ?? ''}';
+        return <String, dynamic>{
+          'id': e['id'],
+          'name': '${e['name'] ?? ''}',
+          'thumb': thumb.startsWith('http')
+              ? thumb
+              : 'https://developer.lametric.com$thumb',
+        };
+      }).toList();
+    }
+  } catch (_) {}
+  return [];
+}
+
 /// UDP-Broadcast-Discovery: sendet FIND_AWTRIXNG an :4210, lauscht auf :4211.
 /// Sendet an 255.255.255.255 UND an die subnetz-gerichteten Broadcasts aller
 /// lokalen Interfaces (robust, wenn Mobilfunk + WLAN gleichzeitig aktiv sind).
