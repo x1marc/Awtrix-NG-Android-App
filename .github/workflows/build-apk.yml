@@ -77,6 +77,27 @@ jobs:
           --build-number=${{ github.run_number }}
           --build-name=3.1.${{ github.run_number }}
 
+      - name: APK mit festem Schluessel signieren (Obtainium-Updates)
+        env:
+          KS_B64: ${{ secrets.KEYSTORE_B64 }}
+          KS_PASS: ${{ secrets.KEYSTORE_PASS }}
+          KS_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          if [ -z "$KS_B64" ]; then
+            echo "Kein Keystore-Secret gesetzt -> Debug-Signatur (Updates brechen!)"
+            exit 0
+          fi
+          echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/awtrix.jks"
+          APK=build/app/outputs/flutter-apk/app-release.apk
+          SDK="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+          AS="$(ls -d "$SDK"/build-tools/*/ | sort -V | tail -1)apksigner"
+          echo "apksigner: $AS"
+          "$AS" sign --ks "$RUNNER_TEMP/awtrix.jks" \
+            --ks-pass "pass:$KS_PASS" --ks-key-alias "$KS_ALIAS" \
+            --key-pass "pass:$KS_PASS" "$APK"
+          echo "----- Signatur-Zertifikat -----"
+          "$AS" verify --print-certs "$APK" | grep -i "SHA-256" | head -1
+
       - name: APK als Artefakt hochladen
         uses: actions/upload-artifact@v4
         with:
