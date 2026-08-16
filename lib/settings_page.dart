@@ -362,16 +362,17 @@ class _SettingsPageState extends State<SettingsPage> {
                   for (var gi = 0; gi < groupsInOrder.length; gi++)
                     Card(
                       margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
-                      child: ExpansionTile(
-                        key: PageStorageKey(
-                            'grp-${groupsInOrder[gi]}-${_filter.isEmpty}'),
-                        initiallyExpanded: gi == 0 || _filter.isNotEmpty,
-                        title: Text(groupsInOrder[gi],
-                            style: const TextStyle(fontWeight: FontWeight.bold)),
-                        childrenPadding:
-                            const EdgeInsets.only(left: 4, right: 4, bottom: 6),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 2),
+                            child: Text(groupsInOrder[gi],
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 16)),
+                          ),
                           for (final k in grouped[groupsInOrder[gi]]!) _row(k),
+                          const SizedBox(height: 6),
                         ],
                       ),
                     ),
