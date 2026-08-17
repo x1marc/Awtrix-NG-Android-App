@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart' show MediaType;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Eine AWTRIX-NG-Uhr im Netzwerk (per IP/Hostname).
@@ -265,12 +266,22 @@ class AwtrixApi {
 
   Future<http.Response> uploadFile(
       String dir, String filename, List<int> bytes) async {
+    final ext = filename.contains('.')
+        ? filename.substring(filename.lastIndexOf('.') + 1).toLowerCase()
+        : '';
+    final sub = ext == 'gif'
+        ? 'gif'
+        : (ext == 'jpg' || ext == 'jpeg')
+            ? 'jpeg'
+            : 'png';
     final req = http.MultipartRequest(
         'POST', Uri.parse('${device.base}/api/v1/files?dir=$dir'));
     final auth = device.authHeader;
     if (auth != null) req.headers['Authorization'] = auth;
-    req.files
-        .add(http.MultipartFile.fromBytes('file', bytes, filename: filename));
+    // curl setzt bei -F den Content-Type nach Dateiendung; ohne den lehnt die
+    // Uhr mit 415 ab. Also explizit image/png|gif|jpeg mitschicken.
+    req.files.add(http.MultipartFile.fromBytes('file', bytes,
+        filename: filename, contentType: MediaType('image', sub)));
     final s = await req.send().timeout(const Duration(seconds: 15));
     return http.Response.fromStream(s);
   }
