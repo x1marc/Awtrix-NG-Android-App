@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'api.dart';
 import 'color_picker.dart';
 import 'favorites.dart';
+import 'l10n.dart';
 import 'matrix_preview.dart';
 import 'notify_page.dart';
 import 'sensors.dart';
@@ -41,10 +42,13 @@ class _ControlPageState extends State<ControlPage> {
     setState(() => _busy = true);
     try {
       final r = await f();
-      snack(context,
-          (r.statusCode >= 200 && r.statusCode < 300) ? ok : 'Fehler ${r.statusCode}');
+      snack(
+          context,
+          (r.statusCode >= 200 && r.statusCode < 300)
+              ? ok
+              : trp('rejected', {'code': '${r.statusCode}'}));
     } catch (_) {
-      snack(context, 'Uhr nicht erreichbar');
+      snack(context, tr('notReachable'));
     }
     if (mounted) setState(() => _busy = false);
   }
@@ -60,15 +64,15 @@ class _ControlPageState extends State<ControlPage> {
 
         // --- Benachrichtigung ---
         SectionCard(
-          title: 'Benachrichtigung',
+          title: tr('notification'),
           icon: Icons.notifications,
           children: [
             TextField(
               controller: _textC,
-              decoration: const InputDecoration(
-                  labelText: 'Text',
+              decoration: InputDecoration(
+                  labelText: tr('text'),
                   filled: false,
-                  border: OutlineInputBorder()),
+                  border: const OutlineInputBorder()),
             ),
             const SizedBox(height: 10),
             Wrap(
@@ -77,14 +81,14 @@ class _ControlPageState extends State<ControlPage> {
               children: [
                 for (final e in kColors.entries)
                   ChoiceChip(
-                    label: Text(e.key),
+                    label: Text(colorLabel(e.key)),
                     selected: _notifyColor == e.value,
                     onSelected: (_) => setState(() => _notifyColor = e.value),
                   ),
                 ActionChip(
                   avatar:
                       CircleAvatar(radius: 9, backgroundColor: rgb(_notifyColor)),
-                  label: const Text('Eigene…'),
+                  label: Text(tr('custom_dots')),
                   onPressed: () async {
                     final hex = await pickColor(context,
                         initialHex: colorToHex(rgb(_notifyColor)));
@@ -103,15 +107,16 @@ class _ControlPageState extends State<ControlPage> {
                       ? null
                       : () => _run(
                           () => api.notify(_textC.text, color: _notifyColor),
-                          'Gesendet'),
+                          tr('sent')),
                   icon: const Icon(Icons.send),
-                  label: const Text('Senden'),
+                  label: Text(tr('send')),
                 ),
               ),
               const SizedBox(width: 8),
               OutlinedButton(
-                onPressed: _busy ? null : () => _run(api.dismiss, 'Verworfen'),
-                child: const Text('Wegwischen'),
+                onPressed:
+                    _busy ? null : () => _run(api.dismiss, tr('dismissed')),
+                child: Text(tr('dismiss')),
               ),
             ]),
             Align(
@@ -123,7 +128,7 @@ class _ControlPageState extends State<ControlPage> {
                       builder: (_) => NotifyPage(device: widget.device)),
                 ),
                 icon: const Icon(Icons.tune, size: 18),
-                label: const Text('Erweitert (Icon, Effekte, Sound, Vorlagen)…'),
+                label: Text(tr('advanced_notify')),
               ),
             ),
           ],
@@ -131,23 +136,24 @@ class _ControlPageState extends State<ControlPage> {
 
         // --- Apps ---
         SectionCard(
-          title: 'Apps',
+          title: tr('nav_apps'),
           icon: Icons.apps,
           children: [
             Row(children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: _busy ? null : () => _run(api.prevApp, 'Zurück'),
+                  onPressed: _busy ? null : () => _run(api.prevApp, tr('back')),
                   icon: const Icon(Icons.chevron_left),
-                  label: const Text('Vorherige'),
+                  label: Text(tr('previous')),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: _busy ? null : () => _run(api.nextApp, 'Weiter'),
+                  onPressed:
+                      _busy ? null : () => _run(api.nextApp, tr('forward')),
                   icon: const Icon(Icons.chevron_right),
-                  label: const Text('Nächste'),
+                  label: Text(tr('next')),
                 ),
               ),
             ]),
@@ -156,22 +162,24 @@ class _ControlPageState extends State<ControlPage> {
 
         // --- Display ---
         SectionCard(
-          title: 'Display',
+          title: tr('display'),
           icon: Icons.monitor,
           children: [
             Row(children: [
               Expanded(
                 child: FilledButton.tonal(
-                  onPressed: _busy ? null : () => _run(() => api.power(true), 'An'),
-                  child: const Text('An'),
+                  onPressed:
+                      _busy ? null : () => _run(() => api.power(true), tr('on')),
+                  child: Text(tr('on')),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: FilledButton.tonal(
-                  onPressed:
-                      _busy ? null : () => _run(() => api.power(false), 'Aus'),
-                  child: const Text('Aus'),
+                  onPressed: _busy
+                      ? null
+                      : () => _run(() => api.power(false), tr('off')),
+                  child: Text(tr('off')),
                 ),
               ),
             ]),
@@ -192,18 +200,20 @@ class _ControlPageState extends State<ControlPage> {
               SizedBox(width: 34, child: Text(_brightness.round().toString())),
             ]),
             Row(children: [
-              const Text('Wetter-Overlay:'),
+              Text(tr('weather_overlay')),
               const SizedBox(width: 10),
               DropdownButton<String>(
                 value: _overlay,
-                items: const [
-                  DropdownMenuItem(value: 'off', child: Text('aus')),
-                  DropdownMenuItem(value: 'rain', child: Text('Regen')),
-                  DropdownMenuItem(value: 'snow', child: Text('Schnee')),
-                  DropdownMenuItem(value: 'drizzle', child: Text('Niesel')),
-                  DropdownMenuItem(value: 'storm', child: Text('Sturm')),
-                  DropdownMenuItem(value: 'thunder', child: Text('Gewitter')),
-                  DropdownMenuItem(value: 'frost', child: Text('Frost')),
+                items: [
+                  DropdownMenuItem(value: 'off', child: Text(tr('ov_off'))),
+                  DropdownMenuItem(value: 'rain', child: Text(tr('ov_rain'))),
+                  DropdownMenuItem(value: 'snow', child: Text(tr('ov_snow'))),
+                  DropdownMenuItem(
+                      value: 'drizzle', child: Text(tr('ov_drizzle'))),
+                  DropdownMenuItem(value: 'storm', child: Text(tr('ov_storm'))),
+                  DropdownMenuItem(
+                      value: 'thunder', child: Text(tr('ov_thunder'))),
+                  DropdownMenuItem(value: 'frost', child: Text(tr('ov_frost'))),
                 ],
                 onChanged: _busy
                     ? null
@@ -220,7 +230,7 @@ class _ControlPageState extends State<ControlPage> {
 
         // --- Moodlight ---
         SectionCard(
-          title: 'Stimmungslicht',
+          title: tr('moodlight'),
           icon: Icons.lightbulb,
           children: [
             Row(children: [
@@ -251,23 +261,23 @@ class _ControlPageState extends State<ControlPage> {
                         : () => _run(
                             () => api.moodlight(rgbFromHex(hex),
                                 brightness: _moodBright.round()),
-                            'Moodlight'),
+                            tr('moodlight')),
                   ),
                 for (final e in kColors.entries)
                   ActionChip(
                     avatar: CircleAvatar(
                         radius: 9, backgroundColor: rgb(e.value)),
-                    label: Text(e.key),
+                    label: Text(colorLabel(e.key)),
                     onPressed: _busy
                         ? null
                         : () => _run(
                             () => api.moodlight(e.value,
                                 brightness: _moodBright.round()),
-                            'Moodlight'),
+                            tr('moodlight')),
                   ),
                 ActionChip(
                   avatar: const Icon(Icons.palette, size: 18),
-                  label: const Text('Eigene…'),
+                  label: Text(tr('custom_dots')),
                   onPressed: _busy
                       ? null
                       : () async {
@@ -278,15 +288,15 @@ class _ControlPageState extends State<ControlPage> {
                             _run(
                                 () => api.moodlight(rgbFromHex(hex),
                                     brightness: _moodBright.round()),
-                                'Moodlight');
+                                tr('moodlight'));
                           }
                         },
                 ),
                 ActionChip(
                   avatar: const Icon(Icons.power_settings_new, size: 18),
-                  label: const Text('Aus'),
+                  label: Text(tr('off')),
                   onPressed:
-                      _busy ? null : () => _run(api.moodlightOff, 'Aus'),
+                      _busy ? null : () => _run(api.moodlightOff, tr('off')),
                 ),
               ],
             ),
@@ -295,7 +305,7 @@ class _ControlPageState extends State<ControlPage> {
 
         // --- Status-LEDs ---
         SectionCard(
-          title: 'Status-LEDs',
+          title: tr('status_leds'),
           icon: Icons.circle,
           children: [
             for (var id = 1; id <= 3; id++)
@@ -316,7 +326,7 @@ class _ControlPageState extends State<ControlPage> {
                       ),
                     ),
                   IconButton(
-                    tooltip: 'Eigene Farbe',
+                    tooltip: tr('own_color'),
                     icon: const Icon(Icons.palette, size: 18),
                     onPressed: _busy
                         ? null
@@ -331,7 +341,7 @@ class _ControlPageState extends State<ControlPage> {
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.close, size: 18),
-                    tooltip: 'aus',
+                    tooltip: tr('off'),
                     onPressed: _busy
                         ? null
                         : () => _run(() => api.indicatorOff(id), 'LED $id aus'),

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'api.dart';
 import 'device_shell.dart';
-import 'main.dart' show ThemeToggleButton;
+import 'l10n.dart';
+import 'main.dart' show LanguageButton, ThemeToggleButton;
 import 'support.dart';
 import 'version.dart';
 
@@ -50,10 +51,11 @@ class _HomePageState extends State<HomePage> {
     setState(() => _scanning = false);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(found.isEmpty
-          ? 'Keine Uhr gefunden – per IP hinzufügen (+)'
+          ? tr('discover_none')
           : added > 0
-              ? '${found.length} gefunden, $added neu hinzugefügt'
-              : '${found.length} gefunden (schon in der Liste)'),
+              ? trp('discover_found_new',
+                  {'n': '${found.length}', 'a': '$added'})
+              : trp('discover_found_known', {'n': '${found.length}'})),
     ));
   }
 
@@ -69,7 +71,7 @@ class _HomePageState extends State<HomePage> {
       context: context,
       builder: (_) => StatefulBuilder(
         builder: (context, setLocal) => AlertDialog(
-          title: Text(editing ? 'Uhr bearbeiten' : 'Uhr hinzufügen'),
+          title: Text(editing ? tr('edit_clock') : tr('add_clock')),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -77,33 +79,33 @@ class _HomePageState extends State<HomePage> {
                 TextField(
                   controller: ipC,
                   autofocus: !editing,
-                  decoration: const InputDecoration(
-                    labelText: 'IP oder Hostname',
+                  decoration: InputDecoration(
+                    labelText: tr('ip_or_host'),
                     hintText: '192.168.1.111',
                     filled: false,
                   ),
                 ),
                 TextField(
                   controller: nameC,
-                  decoration: const InputDecoration(
-                      labelText: 'Name (optional)', filled: false),
+                  decoration: InputDecoration(
+                      labelText: tr('name_optional'), filled: false),
                 ),
                 const SizedBox(height: 12),
-                const Align(
+                Align(
                   alignment: Alignment.centerLeft,
-                  child: Text('Nur falls die Uhr einen Login verlangt:',
-                      style: TextStyle(fontSize: 12)),
+                  child: Text(tr('login_hint'),
+                      style: const TextStyle(fontSize: 12)),
                 ),
                 TextField(
                   controller: userC,
-                  decoration: const InputDecoration(
-                      labelText: 'Benutzer (optional)', filled: false),
+                  decoration: InputDecoration(
+                      labelText: tr('user_optional'), filled: false),
                 ),
                 TextField(
                   controller: passC,
                   obscureText: !showPass,
                   decoration: InputDecoration(
-                    labelText: 'Passwort (optional)',
+                    labelText: tr('password_optional'),
                     filled: false,
                     suffixIcon: IconButton(
                       icon: Icon(showPass
@@ -119,10 +121,10 @@ class _HomePageState extends State<HomePage> {
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Abbrechen')),
+                child: Text(tr('cancel'))),
             FilledButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: Text(editing ? 'Speichern' : 'Hinzufügen')),
+                child: Text(editing ? tr('save') : tr('add'))),
           ],
         ),
       ),
@@ -154,20 +156,22 @@ class _HomePageState extends State<HomePage> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('An alle Uhren senden'),
+        title: Text(tr('broadcast_title')),
         content: TextField(
           controller: c,
           autofocus: true,
-          decoration: const InputDecoration(
-              labelText: 'Text', filled: false, border: OutlineInputBorder()),
+          decoration: InputDecoration(
+              labelText: tr('text'),
+              filled: false,
+              border: const OutlineInputBorder()),
         ),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Abbrechen')),
+              child: Text(tr('cancel'))),
           FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Senden')),
+              child: Text(tr('send'))),
         ],
       ),
     );
@@ -181,7 +185,8 @@ class _HomePageState extends State<HomePage> {
     }
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('An $n von ${_devices.length} Uhren gesendet')));
+          content: Text(trp('broadcast_result',
+              {'n': '$n', 'total': '${_devices.length}'}))));
     }
   }
 
@@ -189,26 +194,21 @@ class _HomePageState extends State<HomePage> {
     showDialog<void>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Hilfe & Tipps'),
-        content: const SingleChildScrollView(
+        title: Text(tr('help_title')),
+        content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('• Uhr finden: im selben WLAN unten „Uhr suchen" – '
-                  'oder oben mit + per IP hinzufügen.'),
-              SizedBox(height: 8),
-              Text('• Login: Wenn die Uhr Benutzer/Passwort verlangt, '
-                  'in der Liste auf ✏️ tippen und eintragen.'),
-              SizedBox(height: 8),
-              Text('• Steuern: Benachrichtigungen (mit „Erweitert" für Icon, '
-                  'Effekte, Sound, Vorlagen), Apps, Stimmungslicht, Status-LEDs.'),
-              SizedBox(height: 8),
-              Text('• Apps: „Eigene App" für eine dauerhafte App, '
-                  '„Pixel malen" für eigene Bilder.'),
-              SizedBox(height: 8),
-              Text('• System → Wartung: Backup exportieren/wiederherstellen, '
-                  'Neustart, Werksreset.'),
+              Text(tr('help_1')),
+              const SizedBox(height: 8),
+              Text(tr('help_2')),
+              const SizedBox(height: 8),
+              Text(tr('help_3')),
+              const SizedBox(height: 8),
+              Text(tr('help_4')),
+              const SizedBox(height: 8),
+              Text(tr('help_5')),
             ],
           ),
         ),
@@ -218,11 +218,11 @@ class _HomePageState extends State<HomePage> {
               Navigator.pop(context);
               showSupportSheet(context);
             },
-            child: const Text('Projekte / Kaffee ☕'),
+            child: Text(tr('help_projects')),
           ),
           FilledButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Alles klar')),
+              child: Text(tr('ok'))),
         ],
       ),
     );
@@ -236,17 +236,18 @@ class _HomePageState extends State<HomePage> {
         title: const Text('Awtrix NG App'),
         actions: [
           IconButton(
-            tooltip: 'Hilfe',
+            tooltip: tr('help'),
             icon: const Icon(Icons.help_outline),
             onPressed: _showHelp,
           ),
           if (_devices.isNotEmpty)
             IconButton(
-              tooltip: 'An alle senden',
+              tooltip: tr('broadcast'),
               icon: const Icon(Icons.campaign),
               onPressed: _broadcast,
             ),
           const BmcButton(),
+          const LanguageButton(),
           const ThemeToggleButton(),
         ],
       ),
@@ -259,16 +260,15 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     Icon(Icons.watch, size: 72, color: cs.primary),
                     const SizedBox(height: 12),
-                    const Text('Noch keine Uhr hinzugefügt.',
-                        style: TextStyle(fontSize: 18)),
+                    Text(tr('no_clock_title'),
+                        style: const TextStyle(fontSize: 18)),
                     const SizedBox(height: 6),
-                    const Text(
-                      'Tippe unten auf „Uhr suchen" (gleiches WLAN) '
-                      'oder oben auf + für eine IP.',
+                    Text(
+                      tr('no_clock_hint'),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 28),
-                    Text('Version $kAppVersion',
+                    Text(trp('version', {'v': kAppVersion}),
                         style: TextStyle(color: cs.outline, fontSize: 12)),
                   ],
                 ),
@@ -299,13 +299,13 @@ class _HomePageState extends State<HomePage> {
                         children: [
                           IconButton(
                             icon: const Icon(Icons.edit_outlined),
-                            tooltip: 'Bearbeiten (Login)',
+                            tooltip: tr('edit_login'),
                             onPressed: () =>
                                 _deviceDialog(existing: _devices[i]),
                           ),
                           IconButton(
                             icon: const Icon(Icons.delete_outline),
-                            tooltip: 'Entfernen',
+                            tooltip: tr('remove'),
                             onPressed: () async {
                               _devices.removeAt(i);
                               await _persist();
@@ -344,7 +344,7 @@ class _HomePageState extends State<HomePage> {
                     height: 18,
                     child: CircularProgressIndicator(strokeWidth: 2))
                 : const Icon(Icons.wifi_find),
-            label: Text(_scanning ? 'Suche…' : 'Uhr suchen'),
+            label: Text(_scanning ? tr('searching') : tr('find_clock')),
           ),
         ],
       ),

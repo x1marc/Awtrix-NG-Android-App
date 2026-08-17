@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'l10n.dart';
+
 /// Vordefinierte Farben (RGB) für Text/Moodlight/LEDs.
 const Map<String, List<int>> kColors = {
   'Weiß': [255, 255, 255],
@@ -9,6 +11,20 @@ const Map<String, List<int>> kColors = {
   'Gelb': [255, 200, 0],
   'Warmweiß': [255, 160, 60],
 };
+
+/// Übersetzter Anzeigename für einen kColors-Schlüssel.
+String colorLabel(String key) {
+  const map = {
+    'Weiß': 'color_white',
+    'Rot': 'color_red',
+    'Grün': 'color_green',
+    'Blau': 'color_blue',
+    'Gelb': 'color_yellow',
+    'Warmweiß': 'color_warmwhite',
+  };
+  final k = map[key];
+  return k == null ? key : tr(k);
+}
 
 Color rgb(List<int> c) =>
     Color.fromARGB(255, c.elementAt(0), c.elementAt(1), c.elementAt(2));
@@ -41,7 +57,7 @@ class ErrorRetry extends StatelessWidget {
             FilledButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh),
-              label: const Text('Erneut versuchen'),
+              label: Text(tr('retry')),
             ),
           ],
         ),

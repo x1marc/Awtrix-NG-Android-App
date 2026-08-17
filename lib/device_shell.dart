@@ -4,7 +4,8 @@ import 'api.dart';
 import 'apps_page.dart';
 import 'control_page.dart';
 import 'icons_page.dart';
-import 'main.dart' show ThemeToggleButton;
+import 'l10n.dart';
+import 'main.dart' show LanguageButton, ThemeToggleButton;
 import 'settings_page.dart';
 import 'support.dart';
 import 'system_page.dart';
@@ -40,7 +41,13 @@ class _DeviceShellState extends State<DeviceShell> {
     _controlActive.value = v == 0;
   }
 
-  static const _labels = ['Steuern', 'Apps', 'Icons', 'Einstellungen', 'System'];
+  List<String> get _labels => [
+        tr('nav_control'),
+        tr('nav_apps'),
+        tr('nav_icons'),
+        tr('nav_settings'),
+        tr('nav_system'),
+      ];
   static const _icons = [
     Icons.tune,
     Icons.apps,
@@ -57,7 +64,7 @@ class _DeviceShellState extends State<DeviceShell> {
     return Scaffold(
       appBar: AppBar(
         title: Text('${widget.device.name}  ·  ${_labels[_i]}'),
-        actions: const [BmcButton(), ThemeToggleButton()],
+        actions: const [BmcButton(), LanguageButton(), ThemeToggleButton()],
       ),
       body: wide
           ? Row(
