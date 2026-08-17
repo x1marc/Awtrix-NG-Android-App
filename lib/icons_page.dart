@@ -136,6 +136,52 @@ class _IconsPageState extends State<IconsPage> {
     );
   }
 
+  // Miniatur eines auf der Uhr gespeicherten Icons (Web-Server liefert die
+  // Datei direkt unter /ICONS/<name>; animierte GIFs werden abgespielt).
+  Widget _iconThumb(String name) {
+    final url = '${widget.device.base}/ICONS/$name';
+    final auth = widget.device.authHeader;
+    return Container(
+      width: 42,
+      height: 42,
+      decoration: BoxDecoration(
+        color: const Color(0xFF141414),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      alignment: Alignment.center,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(4),
+        child: Image.network(
+          url,
+          width: 38,
+          height: 38,
+          fit: BoxFit.contain,
+          gaplessPlayback: true,
+          headers: auth == null ? null : {'Authorization': auth},
+          errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported,
+              size: 18, color: Colors.grey),
+        ),
+      ),
+    );
+  }
+
+  // Zeigt das Icon kurz auf der Uhr an (Benachrichtigung nur mit Icon).
+  Future<void> _showOnClock(String name) async {
+    final ref =
+        name.contains('.') ? name.substring(0, name.lastIndexOf('.')) : name;
+    try {
+      final r = await api.sendNotification(
+          {'icon': ref, 'text': '', 'durationMs': 6000, 'stack': false});
+      snack(
+          context,
+          (r.statusCode >= 200 && r.statusCode < 300)
+              ? 'Zeige „$ref" auf der Uhr'
+              : 'Uhr lehnte ab (${r.statusCode})');
+    } catch (_) {
+      snack(context, 'Nicht erreichbar');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) return const Center(child: CircularProgressIndicator());
@@ -239,13 +285,24 @@ class _IconsPageState extends State<IconsPage> {
           ),
           for (final f in _files)
             ListTile(
-              leading: const Icon(Icons.image_outlined),
+              leading: _iconThumb('${f['name']}'),
               title: Text('${f['name']}'),
               subtitle: Text('${(f['size'] as num?)?.toInt() ?? 0} Bytes'),
-              trailing: IconButton(
-                icon: const Icon(Icons.delete_outline),
-                tooltip: 'Löschen',
-                onPressed: () => _delete('${f['name']}'),
+              onTap: () => _showOnClock('${f['name']}'),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.play_circle_outline),
+                    tooltip: 'Auf Uhr zeigen',
+                    onPressed: () => _showOnClock('${f['name']}'),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline),
+                    tooltip: 'Löschen',
+                    onPressed: () => _delete('${f['name']}'),
+                  ),
+                ],
               ),
             ),
           if (_files.isEmpty)
