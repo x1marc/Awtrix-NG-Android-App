@@ -2,8 +2,28 @@ import 'package:flutter/material.dart';
 
 import 'api.dart';
 import 'backup.dart';
+import 'l10n.dart';
 import 'settings_catalog.dart' show prettifyKey;
 import 'widgets.dart';
+
+/// Übersetzter Anzeigename einer System-Gruppe.
+String _gName(String g) {
+  const m = {
+    'WLAN / Netzwerk': 'grp_wlan',
+    'Webserver': 'grp_web',
+    'MQTT': 'grp_mqtt',
+    'Zeit': 'grp_time',
+    'Panel': 'grp_panel',
+    'Helligkeit & Sensoren': 'grp_brightness',
+    'GPIO': 'grp_gpio',
+    'Tasten': 'grp_buttons',
+    'Audio': 'grp_audio',
+    'Skripte': 'grp_scripts',
+    'Sonstiges': 'grp_other',
+  };
+  final k = m[g];
+  return k == null ? g : tr(k);
+}
 
 // Ordnet einen (flachen) System-Schlüssel einer deutschen Gruppe zu.
 const List<String> _germanGroupOrder = [
@@ -140,7 +160,72 @@ const Map<String, String> _fieldLabels = {
   'scriptsEnabled': 'Skripte aktiv',
 };
 
-String _fieldLabel(String k) => _fieldLabels[k] ?? prettifyKey(k);
+const Map<String, String> _fieldLabelsEn = {
+  'ssid': 'Wi-Fi name',
+  'pass': 'Wi-Fi password',
+  'password': 'Password',
+  'hostname': 'Hostname',
+  'staticIp': 'Use static IP',
+  'ip': 'IP address',
+  'gateway': 'Gateway',
+  'subnet': 'Subnet mask',
+  'dns': 'DNS',
+  'dns1': 'DNS 1',
+  'dns2': 'DNS 2',
+  'port': 'Port',
+  'user': 'Username',
+  'username': 'Username',
+  'enabled': 'Enabled',
+  'host': 'Broker host',
+  'brokerHost': 'Broker host',
+  'brokerPort': 'Broker port',
+  'topicPrefix': 'Topic prefix',
+  'prefix': 'Prefix',
+  'haDiscovery': 'Home Assistant discovery',
+  'haPrefix': 'HA prefix',
+  'server': 'Server',
+  'ntpServer': 'NTP server',
+  'timezone': 'Time zone',
+  'tz': 'Time zone',
+  'width': 'Width',
+  'height': 'Height',
+  'panels': 'Number of panels',
+  'brightness': 'Brightness',
+  'minBrightness': 'Min. brightness',
+  'maxBrightness': 'Max. brightness',
+  'debug': 'Debug mode',
+  'authUser': 'Web server user',
+  'authPass': 'Web server password',
+  'batteryDividerRatio': 'Battery divider',
+  'brightnessSmoothing': 'Brightness smoothing',
+  'buttonCallback': 'Button callback (URL)',
+  'dfplayer': 'DFPlayer',
+  'mqttHost': 'Broker host',
+  'mqttPort': 'Broker port',
+  'mqttPrefix': 'Topic prefix',
+  'mqttUser': 'Broker user',
+  'mqttPass': 'Broker password',
+  'netStatic': 'Use static IP',
+  'panelChainReverse': 'Reverse chain',
+  'panelChainSerpentine': 'Chain serpentine',
+  'panelSerpentine': 'Serpentine',
+  'panelStart': 'First LED',
+  'panelWidth': 'Panel width',
+  'wifiSsid': 'Wi-Fi name',
+  'wifiPass': 'Wi-Fi password',
+  'statsInterval': 'Stats interval',
+  'ldrFactor': 'LDR factor',
+  'ldrGamma': 'LDR gamma',
+  'ldrGpio': 'LDR on GPIO',
+  'temperatureOffset': 'Temperature offset',
+  'humidityOffset': 'Humidity offset',
+  'scriptsEnabled': 'Scripts enabled',
+};
+
+String _fieldLabel(String k) =>
+    (effLang() == 'en' ? _fieldLabelsEn[k] : _fieldLabels[k]) ??
+    _fieldLabels[k] ??
+    prettifyKey(k);
 bool _isPassword(String k) {
   final lk = k.toLowerCase();
   return lk.contains('pass') ||
@@ -194,7 +279,7 @@ class _SystemPageState extends State<SystemPage> {
       if (mounted) {
         setState(() {
           _loading = false;
-          _error = 'Uhr nicht erreichbar (${widget.device.host}).';
+          _error = trp('sys_unreachable', {'host': widget.device.host});
         });
       }
     }
@@ -217,18 +302,15 @@ class _SystemPageState extends State<SystemPage> {
       final ok = await showDialog<bool>(
         context: context,
         builder: (_) => AlertDialog(
-          title: const Text('WLAN/GPIO ändern?'),
-          content: const Text(
-              'Achtung: Falsche WLAN- oder GPIO-Werte können die Uhr '
-              'unerreichbar machen (dann hilft nur ein physischer Reset). '
-              'Wirklich speichern?'),
+          title: Text(tr('wlan_gpio_q')),
+          content: Text(tr('wlan_gpio_warn')),
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Abbrechen')),
+                child: Text(tr('cancel'))),
             FilledButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('Trotzdem speichern')),
+                child: Text(tr('save_anyway'))),
           ],
         ),
       );
@@ -264,14 +346,14 @@ class _SystemPageState extends State<SystemPage> {
     try {
       final r = await api.patchSystem(patch);
       if (r.statusCode >= 200 && r.statusCode < 300) {
-        snack(context, 'Gespeichert');
+        snack(context, tr('saved'));
         _gen++;
         await _load();
       } else {
-        snack(context, 'Uhr lehnte ab (${r.statusCode})');
+        snack(context, trp('rejected', {'code': '${r.statusCode}'}));
       }
     } catch (_) {
-      snack(context, 'Nicht erreichbar (evtl. WLAN geändert)');
+      snack(context, tr('sys_rejected_wlan'));
     }
     if (mounted) setState(() => _saving = false);
   }
@@ -318,7 +400,7 @@ class _SystemPageState extends State<SystemPage> {
               fieldKey: ValueKey('$key-$_gen'),
               initialValue: pw ? '' : '${v ?? ''}',
               obscureText: pw,
-              hint: pw ? 'leer = unverändert' : null,
+              hint: pw ? tr('empty_unchanged') : null,
               onChanged: (t) => _set(key, t),
             ),
           ],
@@ -364,7 +446,7 @@ class _SystemPageState extends State<SystemPage> {
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Abbrechen')),
+              child: Text(tr('cancel'))),
           FilledButton(
               onPressed: () => Navigator.pop(context, true),
               child: Text(action)),
@@ -374,9 +456,9 @@ class _SystemPageState extends State<SystemPage> {
     if (ok == true) {
       try {
         await run();
-        snack(context, 'Ausgeführt');
+        snack(context, tr('executed'));
       } catch (_) {
-        snack(context, 'Nicht erreichbar');
+        snack(context, tr('notReachableShort'));
       }
     }
   }
@@ -427,8 +509,7 @@ class _SystemPageState extends State<SystemPage> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'System-/Hardware-Konfiguration. Falsche WLAN- oder '
-                      'GPIO-Werte können die Uhr unerreichbar machen.',
+                      tr('sys_warning'),
                       style: TextStyle(
                           color:
                               Theme.of(context).colorScheme.onErrorContainer),
@@ -446,12 +527,12 @@ class _SystemPageState extends State<SystemPage> {
                   leading: _isRiskyGroup(orderedGroups[gi])
                       ? const Icon(Icons.warning_amber, color: Colors.orange)
                       : null,
-                  title: Text(orderedGroups[gi],
+                  title: Text(_gName(orderedGroups[gi]),
                       style: const TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 16)),
                   subtitle: _isRiskyGroup(orderedGroups[gi])
-                      ? const Text('Vorsicht – kann die Uhr trennen',
-                          style: TextStyle(fontSize: 12))
+                      ? Text(tr('sys_caution'),
+                          style: const TextStyle(fontSize: 12))
                       : null,
                   children: [
                     for (final fk in grouped[orderedGroups[gi]]!) _fieldRow(fk),
@@ -460,12 +541,12 @@ class _SystemPageState extends State<SystemPage> {
               ),
             // ... dann Info & Wartung.
             SectionCard(
-              title: 'Gerät & Statistik',
+              title: tr('device_stats'),
               icon: Icons.info_outline,
               children: _kv(_device),
             ),
             SectionCard(
-              title: 'Wartung',
+              title: tr('maintenance'),
               icon: Icons.build,
               children: [
                 Wrap(
@@ -474,35 +555,33 @@ class _SystemPageState extends State<SystemPage> {
                   children: [
                     OutlinedButton.icon(
                       onPressed: () => _confirmed(
-                          'Uhr neu starten?', 'Neu starten', api.reboot),
+                          tr('reboot_q'), tr('reboot'), api.reboot),
                       icon: const Icon(Icons.restart_alt),
-                      label: const Text('Neu starten'),
+                      label: Text(tr('reboot')),
                     ),
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
                           foregroundColor:
                               Theme.of(context).colorScheme.error),
-                      onPressed: () => _confirmed(
-                          'Werksreset? Alle Einstellungen gehen verloren!',
-                          'Zurücksetzen',
-                          api.factoryReset),
+                      onPressed: () => _confirmed(tr('factory_reset_q'),
+                          tr('do_reset'), api.factoryReset),
                       icon: const Icon(Icons.settings_backup_restore),
-                      label: const Text('Werksreset'),
+                      label: Text(tr('factory_reset')),
                     ),
                     OutlinedButton.icon(
                       onPressed: _load,
                       icon: const Icon(Icons.refresh),
-                      label: const Text('Neu laden'),
+                      label: Text(tr('reload')),
                     ),
                     OutlinedButton.icon(
                       onPressed: () => backupExport(context, api),
                       icon: const Icon(Icons.save_alt),
-                      label: const Text('Backup'),
+                      label: Text(tr('backup')),
                     ),
                     OutlinedButton.icon(
                       onPressed: () => backupImport(context, api, _load),
                       icon: const Icon(Icons.restore),
-                      label: const Text('Wiederherstellen'),
+                      label: Text(tr('restore')),
                     ),
                   ],
                 ),

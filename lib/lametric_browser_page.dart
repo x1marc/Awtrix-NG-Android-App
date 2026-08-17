@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'api.dart';
+import 'l10n.dart';
 import 'widgets.dart';
 
 /// Durchsucht die LaMetric-Icon-Galerie und lädt ein Icon per Tipp direkt
@@ -45,18 +46,18 @@ class _LametricBrowserPageState extends State<LametricBrowserPage> {
     try {
       final bytes = await fetchLametricIcon(id);
       if (bytes == null) {
-        snack(context, 'Download fehlgeschlagen');
+        snack(context, tr('download_failed'));
       } else {
         final r = await uploadIcon(api, id, bytes);
         if (r.statusCode >= 200 && r.statusCode < 300) {
           _done.add(id);
-          snack(context, 'Icon $id auf die Uhr geladen');
+          snack(context, trp('icon_uploaded', {'id': id}));
         } else {
-          snack(context, 'Uhr lehnte ab (${r.statusCode})');
+          snack(context, trp('rejected', {'code': '${r.statusCode}'}));
         }
       }
     } catch (_) {
-      snack(context, 'Fehler beim Übertragen');
+      snack(context, tr('upload_error'));
     }
     if (mounted) setState(() => _uploading = null);
   }
@@ -64,7 +65,7 @@ class _LametricBrowserPageState extends State<LametricBrowserPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: const Text('LaMetric-Icons')),
+        appBar: AppBar(title: Text(tr('lametric_icons'))),
         body: Column(
           children: [
             Padding(
@@ -75,32 +76,32 @@ class _LametricBrowserPageState extends State<LametricBrowserPage> {
                     controller: _q,
                     textInputAction: TextInputAction.search,
                     onSubmitted: (_) => _search(),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       isDense: true,
                       filled: false,
-                      prefixIcon: Icon(Icons.search),
-                      hintText: 'Suchen (z. B. cat, weather, bitcoin)…',
-                      border: OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.search),
+                      hintText: tr('search_hint'),
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
-                FilledButton(onPressed: _search, child: const Text('Suchen')),
+                FilledButton(onPressed: _search, child: Text(tr('search'))),
               ]),
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: Text('Icon antippen = direkt auf die Uhr laden',
-                    style: TextStyle(fontSize: 12, color: Colors.grey)),
+                child: Text(tr('tap_to_load'),
+                    style: const TextStyle(fontSize: 12, color: Colors.grey)),
               ),
             ),
             Expanded(
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
                   : _icons.isEmpty
-                      ? const Center(child: Text('Nichts gefunden.'))
+                      ? Center(child: Text(tr('nothing_found')))
                       : GridView.builder(
                           padding: const EdgeInsets.all(12),
                           gridDelegate:

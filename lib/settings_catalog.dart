@@ -1,5 +1,7 @@
 /// Verständliche Beschreibung der AWTRIX-NG-Einstellungen.
 /// Bekannte Schlüssel bekommen deutsches Label + Hilfe + passenden Bedien-Typ.
+/// Englische Übersetzungen liegen parallel (nach Key) weiter unten.
+import 'l10n.dart';
 
 enum SKind { toggle, slider, number, dropdown, color, colorNullable, text }
 
@@ -272,6 +274,144 @@ const List<SMeta> kSettingsCatalog = [
 final Map<String, SMeta> kSettingsByKey = {
   for (final m in kSettingsCatalog) m.key: m,
 };
+
+// ---- Englische Übersetzungen (parallel, nach Key) ----
+const Map<String, String> _catGroupEn = {
+  'Helligkeit & Farbe': 'Brightness & color',
+  'Text & Scrollen': 'Text & scrolling',
+  'App-Wechsel': 'App switching',
+  'Uhr': 'Clock',
+  'Datum': 'Date',
+  'Wochentagsleiste': 'Weekday bar',
+  'Sensoren': 'Sensors',
+  'Audio': 'Audio',
+  'Bedienung': 'Controls',
+  'Weitere': 'More',
+};
+
+const Map<String, String> _catLabelEn = {
+  'autoBrightness': 'Automatic brightness',
+  'brightness': 'Brightness',
+  'saturation': 'Color saturation',
+  'gamma': 'Gamma',
+  'textColor': 'Default text color',
+  'colorCorrection': 'Color correction',
+  'colorTint': 'Color tint',
+  'uppercase': 'Uppercase',
+  'scroll.mode': 'Scroll mode',
+  'scroll.direction': 'Scroll direction',
+  'scroll.speed': 'Scroll speed',
+  'scroll.entry': 'Text entry',
+  'scroll.whenFits': 'When text fits',
+  'scroll.gap': 'Gap (loop)',
+  'scroll.holdMs': 'Pause',
+  'autoTransition': 'Switch apps automatically',
+  'appDurationMs': 'Duration per app',
+  'transitionEffect': 'Transition effect',
+  'transitionDurationMs': 'Transition duration',
+  'timeMode': 'Clock style',
+  'time24h': '24-hour format',
+  'timeShowSeconds': 'Show seconds',
+  'timeLeadingZero': 'Leading zero',
+  'timeShowAmPm': 'Show AM/PM',
+  'timeSeparatorMode': 'Colon',
+  'timeColor': 'Clock color',
+  'dateOrder': 'Order',
+  'dateSeparator': 'Separator',
+  'dateYearMode': 'Year',
+  'dateShowWeekday': 'Show weekday',
+  'dateMonthNames': 'Month names instead of numbers',
+  'dateColor': 'Date color',
+  'calendarHeaderColor': 'Calendar – header',
+  'calendarTextColor': 'Calendar – day number',
+  'calendarBodyColor': 'Calendar – background',
+  'weekdayBar.show': 'Show weekday bar',
+  'weekdayBar.startOnMonday': 'Week starts Monday',
+  'weekdayBar.activeColor': 'Today (weekday)',
+  'weekdayBar.inactiveColor': 'Other weekdays',
+  'weekdayBar.weekendActiveColor': 'Today (weekend)',
+  'weekdayBar.weekendInactiveColor': 'Other weekend days',
+  'useCelsius': 'Temperature in °C',
+  'temperatureColor': 'Temperature color',
+  'humidityColor': 'Humidity color',
+  'batteryColor': 'Battery color',
+  'soundEnabled': 'Sounds enabled',
+  'buzzerVolume': 'Buzzer volume',
+  'mp3Volume': 'MP3 volume',
+  'dfplayerVolume': 'DFPlayer volume',
+  'radioVolume': 'Radio volume',
+  'radioMeta': 'Show radio info',
+  'blockNavigation': 'Lock button navigation',
+};
+
+const Map<String, String> _catHelpEn = {
+  'autoBrightness': 'Adjusts brightness automatically via the light sensor.',
+  'brightness':
+      'Fixed brightness (0–255). Only applies when automatic brightness is off.',
+  'saturation': '0 = grayscale, 100 = full color.',
+  'gamma': 'Display color curve (default 1.9). Change only if needed.',
+  'textColor': 'The color text uses by default.',
+  'colorCorrection': 'Fine correction of panel colors (advanced). Empty = off.',
+  'colorTint': 'Additional color tint over the panel (advanced).',
+  'uppercase': 'Converts app/notification text to UPPERCASE.',
+  'scroll.mode': 'How overly long text moves.',
+  'scroll.speed': 'Speed in percent (100 = normal).',
+  'scroll.gap': 'Gap between repetitions in loop mode.',
+  'scroll.holdMs': 'Pause before/between text movements (milliseconds).',
+  'autoTransition': 'Cycles through the apps automatically.',
+  'appDurationMs': 'How long each app is shown (7000 = 7 seconds).',
+  'transitionEffect':
+      'Effect when switching apps (e.g. Rain, Fade, Slide). Available names are shown in the clock web UI.',
+  'transitionDurationMs': 'Duration of the switching animation (milliseconds).',
+  'timeMode': 'Various clock layouts (0–6).',
+  'time24h': 'Off = 12-hour with AM/PM.',
+  'timeLeadingZero': 'Shows e.g. 09:05 instead of 9:05.',
+  'timeShowAmPm': 'Only in 12-hour format.',
+  'timeColor': 'Empty = default text color.',
+  'dateColor': 'Empty = default text color.',
+  'useCelsius': 'Off = °F.',
+  'soundEnabled': 'Turns short tones on/off.',
+  'radioMeta': 'Shows station/title during playback.',
+  'blockNavigation': 'Disables cycling via the device buttons.',
+};
+
+const Map<String, Map<String, String>> _catOptionsEn = {
+  'scroll.mode': {
+    'static': 'Static',
+    'wrap': 'Wrap',
+    'loop': 'Loop',
+    'bounce': 'Bounce',
+  },
+  'scroll.direction': {'left': 'To the left', 'right': 'To the right'},
+  'scroll.entry': {'inline': 'Inline', 'offscreen': 'From offscreen'},
+  'scroll.whenFits': {'static': 'Do not scroll', 'scroll': 'Scroll anyway'},
+  'timeSeparatorMode': {
+    'steady': 'Steady',
+    'blink': 'Blinking',
+    'pulse': 'Pulsing'
+  },
+  'dateOrder': {
+    'dayMonthYear': 'Day . Month . Year',
+    'monthDayYear': 'Month / Day / Year',
+    'yearMonthDay': 'Year - Month - Day',
+  },
+  'dateSeparator': {'dot': 'Dot  .', 'slash': 'Slash  /', 'dash': 'Dash  -'},
+  'dateYearMode': {
+    'none': 'No year',
+    'twoDigit': '2-digit',
+    'fourDigit': '4-digit'
+  },
+};
+
+/// Sprachabhängiges Label/Hilfe/Optionen/Gruppe (Englisch, wenn aktiv).
+String catLabel(SMeta m) =>
+    effLang() == 'en' ? (_catLabelEn[m.key] ?? m.label) : m.label;
+String? catHelp(SMeta m) =>
+    effLang() == 'en' ? (_catHelpEn[m.key] ?? m.help) : m.help;
+Map<String, String>? catOptions(SMeta m) =>
+    effLang() == 'en' ? (_catOptionsEn[m.key] ?? m.options) : m.options;
+String catGroup(String group) =>
+    effLang() == 'en' ? (_catGroupEn[group] ?? group) : group;
 
 /// Macht aus "someKeyName" / "weekdayBar.x" einen lesbaren Text (Fallback).
 String prettifyKey(String key) {

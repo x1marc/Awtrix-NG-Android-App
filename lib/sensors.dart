@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'api.dart';
+import 'l10n.dart';
 
 /// Kompakte Sensor-Übersicht der Uhr (Temperatur, Luftfeuchte, Helligkeit,
 /// Akku, RAM, Uptime). Liest /stats und /device und zeigt, was vorhanden ist.
@@ -85,16 +86,19 @@ class _SensorsCardState extends State<SensorsCard> {
 
     final tiles = <Widget>[
       if (temp != null)
-        _tile(Icons.thermostat, 'Temperatur', '${temp.toStringAsFixed(1)}°C',
-            Colors.orange),
+        _tile(Icons.thermostat, tr('sensor_temp'),
+            '${temp.toStringAsFixed(1)}°C', Colors.orange),
       if (hum != null)
-        _tile(Icons.water_drop, 'Feuchte', '${hum.round()}%', Colors.blue),
+        _tile(Icons.water_drop, tr('sensor_hum'), '${hum.round()}%',
+            Colors.blue),
       if (lux != null)
-        _tile(Icons.light_mode, 'Helligkeit', '${lux.round()}', Colors.amber),
+        _tile(Icons.light_mode, tr('sensor_lux'), '${lux.round()}',
+            Colors.amber),
       if (bat != null && bat <= 100)
-        _tile(Icons.battery_full, 'Akku', '${bat.round()}%', Colors.green),
+        _tile(Icons.battery_full, tr('sensor_bat'), '${bat.round()}%',
+            Colors.green),
       if (ram != null)
-        _tile(Icons.memory, 'RAM frei', '${(ram / 1024).round()} KB',
+        _tile(Icons.memory, tr('sensor_ram'), '${(ram / 1024).round()} KB',
             Colors.purple),
     ];
 
@@ -109,9 +113,9 @@ class _SensorsCardState extends State<SensorsCard> {
               Icon(Icons.sensors,
                   size: 20, color: Theme.of(context).colorScheme.primary),
               const SizedBox(width: 8),
-              const Text('Sensoren',
-                  style:
-                      TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              Text(tr('sensors'),
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold)),
               const Spacer(),
               IconButton(
                 visualDensity: VisualDensity.compact,
@@ -126,7 +130,7 @@ class _SensorsCardState extends State<SensorsCard> {
                 child: Center(child: CircularProgressIndicator()),
               )
             else if (tiles.isEmpty)
-              Text('Keine Sensordaten verfügbar.',
+              Text(tr('sensors_none'),
                   style: Theme.of(context).textTheme.bodySmall)
             else
               SingleChildScrollView(

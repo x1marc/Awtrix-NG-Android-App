@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'l10n.dart';
+
 /// Wandelt eine Farbe in "#RRGGBB".
 String colorToHex(Color c) {
   String h(int v) => v.toRadixString(16).padLeft(2, '0');
@@ -68,7 +70,7 @@ class _ColorPickerDialogState extends State<_ColorPickerDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Farbe wählen'),
+      title: Text(tr('pick_color')),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -122,10 +124,10 @@ class _ColorPickerDialogState extends State<_ColorPickerDialog> {
       actions: [
         TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Abbrechen')),
+            child: Text(tr('cancel'))),
         FilledButton(
             onPressed: () => Navigator.pop(context, colorToHex(_color)),
-            child: const Text('Übernehmen')),
+            child: Text(tr('apply'))),
       ],
     );
   }

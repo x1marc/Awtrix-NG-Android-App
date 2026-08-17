@@ -280,6 +280,20 @@ const Map<String, String> _de = {
   'restore_error': 'Fehler beim Wiederherstellen',
   // Support / Fehler
   'error_generic': 'Fehler beim Laden',
+  'pick_color': 'Farbe wählen',
+  'apply': 'Übernehmen',
+  // System-Gruppen
+  'grp_wlan': 'WLAN / Netzwerk',
+  'grp_web': 'Webserver',
+  'grp_mqtt': 'MQTT',
+  'grp_time': 'Zeit',
+  'grp_panel': 'Panel',
+  'grp_brightness': 'Helligkeit & Sensoren',
+  'grp_gpio': 'GPIO',
+  'grp_buttons': 'Tasten',
+  'grp_audio': 'Audio',
+  'grp_scripts': 'Skripte',
+  'grp_other': 'Sonstiges',
 };
 
 const Map<String, String> _en = {
@@ -498,4 +512,17 @@ const Map<String, String> _en = {
   'restored': 'Restored',
   'restore_error': 'Restore failed',
   'error_generic': 'Error loading',
+  'pick_color': 'Choose color',
+  'apply': 'Apply',
+  'grp_wlan': 'Wi-Fi / Network',
+  'grp_web': 'Web server',
+  'grp_mqtt': 'MQTT',
+  'grp_time': 'Time',
+  'grp_panel': 'Panel',
+  'grp_brightness': 'Brightness & sensors',
+  'grp_gpio': 'GPIO',
+  'grp_buttons': 'Buttons',
+  'grp_audio': 'Audio',
+  'grp_scripts': 'Scripts',
+  'grp_other': 'Other',
 };

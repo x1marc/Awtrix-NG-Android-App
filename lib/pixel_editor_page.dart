@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'api.dart';
 import 'color_picker.dart';
+import 'l10n.dart';
 
 /// Einfacher Pixel-Editor: auf der Matrix malen und als App/Overlay senden.
 class PixelEditorPage extends StatefulWidget {
@@ -69,9 +70,9 @@ class _PixelEditorPageState extends State<PixelEditorPage> {
         'draw': _draw(),
         'durationMs': 15000,
       });
-      _report(r.statusCode, 'Als App „pixelart" gespeichert');
+      _report(r.statusCode, tr('saved_as_app'));
     } catch (_) {
-      _snack('Uhr nicht erreichbar');
+      _snack(tr('notReachable'));
     }
     if (mounted) setState(() => _busy = false);
   }
@@ -83,15 +84,15 @@ class _PixelEditorPageState extends State<PixelEditorPage> {
         'draw': _draw(),
         'durationMs': 8000,
       });
-      _report(r.statusCode, 'Kurz angezeigt');
+      _report(r.statusCode, tr('shown_briefly'));
     } catch (_) {
-      _snack('Uhr nicht erreichbar');
+      _snack(tr('notReachable'));
     }
     if (mounted) setState(() => _busy = false);
   }
 
-  void _report(int code, String ok) =>
-      _snack((code >= 200 && code < 300) ? ok : 'Uhr lehnte ab ($code)');
+  void _report(int code, String ok) => _snack(
+      (code >= 200 && code < 300) ? ok : trp('rejected', {'code': '$code'}));
   void _snack(String m) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -103,15 +104,15 @@ class _PixelEditorPageState extends State<PixelEditorPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pixel-Editor'),
+        title: Text(tr('pixel_editor')),
         actions: [
           IconButton(
-            tooltip: 'Alles löschen',
+            tooltip: tr('clear_all'),
             icon: const Icon(Icons.delete_sweep),
             onPressed: () => setState(() => _px = List.filled(_w * _h, 0)),
           ),
           IconButton(
-            tooltip: 'Aktuelles Bild laden',
+            tooltip: tr('load_current'),
             icon: const Icon(Icons.download),
             onPressed: _loadScreen,
           ),
@@ -168,7 +169,7 @@ class _PixelEditorPageState extends State<PixelEditorPage> {
                   ),
                 ActionChip(
                   avatar: const Icon(Icons.colorize, size: 18),
-                  label: const Text('Eigene'),
+                  label: Text(tr('own')),
                   onPressed: () async {
                     final hex = await pickColor(context);
                     if (hex != null) {
@@ -181,7 +182,7 @@ class _PixelEditorPageState extends State<PixelEditorPage> {
                 ),
                 ChoiceChip(
                   avatar: const Icon(Icons.cleaning_services, size: 18),
-                  label: const Text('Radierer'),
+                  label: Text(tr('eraser')),
                   selected: _erase,
                   onSelected: (v) => setState(() => _erase = v),
                 ),
@@ -196,7 +197,7 @@ class _PixelEditorPageState extends State<PixelEditorPage> {
                 child: FilledButton.icon(
                   onPressed: _busy ? null : _sendApp,
                   icon: const Icon(Icons.save),
-                  label: const Text('Als App'),
+                  label: Text(tr('as_app')),
                 ),
               ),
               const SizedBox(width: 8),
@@ -204,7 +205,7 @@ class _PixelEditorPageState extends State<PixelEditorPage> {
                 child: OutlinedButton.icon(
                   onPressed: _busy ? null : _sendNotify,
                   icon: const Icon(Icons.flash_on),
-                  label: const Text('Kurz zeigen'),
+                  label: Text(tr('show_briefly')),
                 ),
               ),
             ]),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'api.dart';
+import 'l10n.dart';
 import 'lametric_browser_page.dart';
 import 'widgets.dart';
 
@@ -39,7 +40,7 @@ class _IconsPageState extends State<IconsPage> {
       if (mounted) {
         setState(() {
           _loading = false;
-          _error = 'Icons nicht erreichbar (${widget.device.host}).';
+          _error = trp('icons_unreachable', {'host': widget.device.host});
         });
       }
     }
@@ -63,19 +64,19 @@ class _IconsPageState extends State<IconsPage> {
     try {
       final bytes = await fetchLametricIcon(id);
       if (bytes == null) {
-        snack(context, 'Icon $id nicht gefunden');
+        snack(context, trp('icon_not_found', {'id': id}));
       } else {
         final r = await uploadIcon(api, id, bytes);
         if (r.statusCode >= 200 && r.statusCode < 300) {
-          snack(context, 'Icon $id gespeichert');
+          snack(context, trp('icon_saved', {'id': id}));
           _idC.clear();
           await _load();
         } else {
-          snack(context, 'Uhr lehnte ab (${r.statusCode})');
+          snack(context, trp('rejected', {'code': '${r.statusCode}'}));
         }
       }
     } catch (_) {
-      snack(context, 'Fehler beim Laden');
+      snack(context, tr('error_generic'));
     }
     if (mounted) setState(() => _busy = false);
   }
@@ -84,24 +85,24 @@ class _IconsPageState extends State<IconsPage> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('„$name" löschen?'),
+        title: Text(trp('delete_q', {'name': name})),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Abbrechen')),
+              child: Text(tr('cancel'))),
           FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Löschen')),
+              child: Text(tr('delete'))),
         ],
       ),
     );
     if (ok == true) {
       try {
         await api.deleteFile('/ICONS/$name');
-        snack(context, 'Gelöscht');
+        snack(context, tr('delete'));
         await _load();
       } catch (_) {
-        snack(context, 'Nicht erreichbar');
+        snack(context, tr('notReachableShort'));
       }
     }
   }
@@ -175,10 +176,10 @@ class _IconsPageState extends State<IconsPage> {
       snack(
           context,
           (r.statusCode >= 200 && r.statusCode < 300)
-              ? 'Zeige „$ref" auf der Uhr'
-              : 'Uhr lehnte ab (${r.statusCode})');
+              ? trp('showing_named', {'name': ref})
+              : trp('rejected', {'code': '${r.statusCode}'}));
     } catch (_) {
-      snack(context, 'Nicht erreichbar');
+      snack(context, tr('notReachableShort'));
     }
   }
 
@@ -202,7 +203,7 @@ class _IconsPageState extends State<IconsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(children: [
-                    const Text('Speicher'),
+                    Text(tr('storage')),
                     const Spacer(),
                     Text(
                         '${(used / 1024).toStringAsFixed(0)} / ${(total / 1024).toStringAsFixed(0)} KB'),
@@ -218,7 +219,7 @@ class _IconsPageState extends State<IconsPage> {
               ),
             ),
           SectionCard(
-            title: 'LaMetric-Icon laden',
+            title: tr('lametric_load'),
             icon: Icons.download,
             children: [
               FilledButton.icon(
@@ -232,10 +233,10 @@ class _IconsPageState extends State<IconsPage> {
                   _load();
                 },
                 icon: const Icon(Icons.search),
-                label: const Text('Galerie durchsuchen & direkt laden'),
+                label: Text(tr('browse_gallery')),
               ),
               const SizedBox(height: 10),
-              Text('… oder eine Icon-ID direkt eingeben:',
+              Text(tr('or_enter_id'),
                   style: Theme.of(context).textTheme.bodySmall),
               const SizedBox(height: 6),
               Row(children: [
@@ -246,11 +247,11 @@ class _IconsPageState extends State<IconsPage> {
                     controller: _idC,
                     keyboardType: TextInputType.number,
                     onChanged: (_) => setState(() {}),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       isDense: true,
                       filled: false,
-                      border: OutlineInputBorder(),
-                      labelText: 'Icon-ID',
+                      border: const OutlineInputBorder(),
+                      labelText: tr('icon_id'),
                       hintText: 'z. B. 2867',
                     ),
                   ),
@@ -263,7 +264,7 @@ class _IconsPageState extends State<IconsPage> {
                           width: 18,
                           height: 18,
                           child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Text('Laden'),
+                      : Text(tr('load')),
                 ),
               ]),
               Align(
@@ -273,14 +274,14 @@ class _IconsPageState extends State<IconsPage> {
                       Uri.parse('https://developer.lametric.com/icons'),
                       mode: LaunchMode.externalApplication),
                   icon: const Icon(Icons.open_in_new, size: 16),
-                  label: const Text('Icon-Galerie öffnen'),
+                  label: Text(tr('open_gallery')),
                 ),
               ),
             ],
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-            child: Text('Gespeicherte Icons (${_files.length})',
+            child: Text(trp('saved_icons', {'n': '${_files.length}'}),
                 style: const TextStyle(fontWeight: FontWeight.bold)),
           ),
           for (final f in _files)
@@ -294,21 +295,21 @@ class _IconsPageState extends State<IconsPage> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.play_circle_outline),
-                    tooltip: 'Auf Uhr zeigen',
+                    tooltip: tr('show_on_clock'),
                     onPressed: () => _showOnClock('${f['name']}'),
                   ),
                   IconButton(
                     icon: const Icon(Icons.delete_outline),
-                    tooltip: 'Löschen',
+                    tooltip: tr('delete'),
                     onPressed: () => _delete('${f['name']}'),
                   ),
                 ],
               ),
             ),
           if (_files.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(24),
-              child: Center(child: Text('Noch keine Icons gespeichert.')),
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Center(child: Text(tr('no_icons'))),
             ),
         ],
       ),

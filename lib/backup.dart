@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'api.dart';
+import 'l10n.dart';
 import 'widgets.dart';
 
 /// Exportiert Einstellungen + System als JSON (Zwischenablage).
@@ -11,11 +12,11 @@ Future<void> backupExport(BuildContext context, AwtrixApi api) async {
   showDialog(
     context: context,
     barrierDismissible: false,
-    builder: (_) => const AlertDialog(
+    builder: (_) => AlertDialog(
       content: Row(children: [
-        CircularProgressIndicator(),
-        SizedBox(width: 16),
-        Expanded(child: Text('Lade Konfiguration…')),
+        const CircularProgressIndicator(),
+        const SizedBox(width: 16),
+        Expanded(child: Text(tr('loading_config'))),
       ]),
     ),
   );
@@ -35,17 +36,15 @@ Future<void> backupExport(BuildContext context, AwtrixApi api) async {
   await showDialog<void>(
     context: context,
     builder: (_) => AlertDialog(
-      title: const Text('Backup exportieren'),
+      title: Text(tr('backup_export')),
       content: SizedBox(
         width: double.maxFinite,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-                'Enthält alle Einstellungen + System (inkl. Passwörter). '
-                'Kopieren und sicher aufbewahren.',
-                style: TextStyle(fontSize: 12)),
+            Text(tr('backup_export_hint'),
+                style: const TextStyle(fontSize: 12)),
             const SizedBox(height: 8),
             Container(
               height: 260,
@@ -65,17 +64,17 @@ Future<void> backupExport(BuildContext context, AwtrixApi api) async {
       actions: [
         TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Schließen')),
+            child: Text(tr('close'))),
         FilledButton.icon(
           onPressed: () async {
             await Clipboard.setData(ClipboardData(text: txt));
             if (context.mounted) {
               Navigator.pop(context);
-              snack(context, 'In Zwischenablage kopiert');
+              snack(context, tr('copied'));
             }
           },
           icon: const Icon(Icons.copy),
-          label: const Text('Kopieren'),
+          label: Text(tr('copy')),
         ),
       ],
     ),
@@ -89,15 +88,14 @@ Future<void> backupImport(
   final ok = await showDialog<bool>(
     context: context,
     builder: (_) => AlertDialog(
-      title: const Text('Backup wiederherstellen'),
+      title: Text(tr('backup_restore')),
       content: SizedBox(
         width: double.maxFinite,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Backup-JSON hier einfügen:',
-                style: TextStyle(fontSize: 12)),
+            Text(tr('paste_json'), style: const TextStyle(fontSize: 12)),
             const SizedBox(height: 8),
             TextField(
               controller: c,
@@ -114,10 +112,10 @@ Future<void> backupImport(
       actions: [
         TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Abbrechen')),
+            child: Text(tr('cancel'))),
         FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Weiter')),
+            child: Text(tr('continue_'))),
       ],
     ),
   );
@@ -129,7 +127,7 @@ Future<void> backupImport(
     if (d is Map) data = d.cast<String, dynamic>();
   } catch (_) {}
   if (data == null) {
-    if (context.mounted) snack(context, 'Ungültiges JSON-Format');
+    if (context.mounted) snack(context, tr('invalid_json'));
     return;
   }
 
@@ -137,17 +135,15 @@ Future<void> backupImport(
   final go = await showDialog<bool>(
     context: context,
     builder: (_) => AlertDialog(
-      title: const Text('Wirklich überschreiben?'),
-      content: const Text(
-          'Achtung: Auch WLAN-/Netzwerkwerte werden übernommen – die Uhr '
-          'kann sich kurz trennen. Fortfahren?'),
+      title: Text(tr('overwrite_q')),
+      content: Text(tr('overwrite_warn')),
       actions: [
         TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Abbrechen')),
+            child: Text(tr('cancel'))),
         FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Wiederherstellen')),
+            child: Text(tr('restore'))),
       ],
     ),
   );
@@ -161,10 +157,10 @@ Future<void> backupImport(
       await api.patchSystem((data['system'] as Map).cast<String, dynamic>());
     }
     if (context.mounted) {
-      snack(context, 'Wiederhergestellt');
+      snack(context, tr('restored'));
       onDone();
     }
   } catch (_) {
-    if (context.mounted) snack(context, 'Fehler beim Wiederherstellen');
+    if (context.mounted) snack(context, tr('restore_error'));
   }
 }

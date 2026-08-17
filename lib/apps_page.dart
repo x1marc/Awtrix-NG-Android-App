@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'api.dart';
 import 'custom_app_page.dart';
+import 'l10n.dart';
 import 'pixel_editor_page.dart';
 import 'widgets.dart';
 
@@ -45,10 +46,10 @@ class _AppsPageState extends State<AppsPage> {
     try {
       final r = await api.reorderApps(order, disabled);
       if (r.statusCode < 200 || r.statusCode >= 300) {
-        snack(context, 'Uhr lehnte ab (${r.statusCode})');
+        snack(context, trp('rejected', {'code': '${r.statusCode}'}));
       }
     } catch (_) {
-      snack(context, 'Nicht erreichbar');
+      snack(context, tr('notReachableShort'));
     }
   }
 
@@ -71,7 +72,7 @@ class _AppsPageState extends State<AppsPage> {
       await f;
       snack(context, ok);
     } catch (_) {
-      snack(context, 'Nicht erreichbar');
+      snack(context, tr('notReachableShort'));
     }
   }
 
@@ -79,19 +80,19 @@ class _AppsPageState extends State<AppsPage> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('„$name" löschen?'),
+        title: Text(trp('delete_q', {'name': name})),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Abbrechen')),
+              child: Text(tr('cancel'))),
           FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Löschen')),
+              child: Text(tr('delete'))),
         ],
       ),
     );
     if (ok == true) {
-      await _do(api.deleteApp(name), 'Gelöscht');
+      await _do(api.deleteApp(name), tr('delete'));
       _load();
     }
   }
@@ -103,36 +104,36 @@ class _AppsPageState extends State<AppsPage> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('App hinzufügen'),
+        title: Text(tr('quick_app')),
         content: SingleChildScrollView(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             TextField(
               controller: nameC,
               autofocus: true,
-              decoration: const InputDecoration(
-                  labelText: 'App-Name (eindeutig)',
+              decoration: InputDecoration(
+                  labelText: tr('app_name_unique'),
                   hintText: 'z. B. info',
                   filled: false),
             ),
             TextField(
               controller: textC,
-              decoration: const InputDecoration(
-                  labelText: 'Text', hintText: 'z. B. Hallo', filled: false),
+              decoration: InputDecoration(
+                  labelText: tr('text'), hintText: 'z. B. Hallo', filled: false),
             ),
             TextField(
               controller: iconC,
-              decoration: const InputDecoration(
-                  labelText: 'Icon-Nummer (optional)', filled: false),
+              decoration: InputDecoration(
+                  labelText: tr('icon_number_optional'), filled: false),
             ),
           ]),
         ),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Abbrechen')),
+              child: Text(tr('cancel'))),
           FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Erstellen')),
+              child: Text(tr('create'))),
         ],
       ),
     );
@@ -143,7 +144,7 @@ class _AppsPageState extends State<AppsPage> {
           'text': textC.text,
           if (iconC.text.trim().isNotEmpty) 'icon': iconC.text.trim(),
         }),
-        'Erstellt',
+        tr('created'),
       );
       _load();
     }
@@ -158,21 +159,21 @@ class _AppsPageState extends State<AppsPage> {
           child: Row(children: [
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: () => _do(api.prevApp(), 'Zurück'),
+                onPressed: () => _do(api.prevApp(), tr('back')),
                 icon: const Icon(Icons.chevron_left),
-                label: const Text('Vorherige'),
+                label: Text(tr('previous')),
               ),
             ),
             const SizedBox(width: 8),
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: () => _do(api.nextApp(), 'Weiter'),
+                onPressed: () => _do(api.nextApp(), tr('forward')),
                 icon: const Icon(Icons.chevron_right),
-                label: const Text('Nächste'),
+                label: Text(tr('next')),
               ),
             ),
             IconButton(
-                tooltip: 'Aktualisieren',
+                tooltip: tr('refresh'),
                 onPressed: _load,
                 icon: const Icon(Icons.refresh)),
           ]),
@@ -186,7 +187,7 @@ class _AppsPageState extends State<AppsPage> {
               FilledButton.tonalIcon(
                 onPressed: _addApp,
                 icon: const Icon(Icons.add, size: 18),
-                label: const Text('Schnell-App'),
+                label: Text(tr('quick_app')),
               ),
               OutlinedButton.icon(
                 onPressed: () async {
@@ -198,7 +199,7 @@ class _AppsPageState extends State<AppsPage> {
                   if (changed == true) _load();
                 },
                 icon: const Icon(Icons.dashboard_customize, size: 18),
-                label: const Text('Eigene App'),
+                label: Text(tr('custom_app')),
               ),
               OutlinedButton.icon(
                 onPressed: () => Navigator.push(
@@ -207,7 +208,7 @@ class _AppsPageState extends State<AppsPage> {
                       builder: (_) => PixelEditorPage(device: widget.device)),
                 ),
                 icon: const Icon(Icons.grid_on, size: 18),
-                label: const Text('Pixel malen'),
+                label: Text(tr('draw_pixels')),
               ),
             ],
           ),
@@ -216,16 +217,16 @@ class _AppsPageState extends State<AppsPage> {
           child: _loading
               ? const Center(child: CircularProgressIndicator())
               : _apps.isEmpty
-                  ? ListView(children: const [
-                      SizedBox(height: 40),
-                      Icon(Icons.apps, size: 48, color: Colors.grey),
-                      SizedBox(height: 10),
+                  ? ListView(children: [
+                      const SizedBox(height: 40),
+                      const Icon(Icons.apps, size: 48, color: Colors.grey),
+                      const SizedBox(height: 10),
                       Center(
                         child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 24),
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 24),
                           child: Text(
-                            'Keine App-Liste erhalten.\n'
-                            'Vor-/Zurück oben & „+ App" funktionieren trotzdem.',
+                            tr('no_app_list'),
                             textAlign: TextAlign.center,
                           ),
                         ),
@@ -248,12 +249,13 @@ class _AppsPageState extends State<AppsPage> {
                               index: i,
                               child: const Icon(Icons.drag_indicator),
                             ),
-                            title: Text(name.isEmpty ? '(unbenannt)' : name),
-                            subtitle: Text(on ? 'aktiv' : 'deaktiviert'),
+                            title: Text(name.isEmpty ? tr('unnamed') : name),
+                            subtitle:
+                                Text(on ? tr('active') : tr('inactive')),
                             onTap: name.isEmpty
                                 ? null
-                                : () =>
-                                    _do(api.switchApp(name), 'Zeige „$name"'),
+                                : () => _do(api.switchApp(name),
+                                    trp('show_named', {'name': name})),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -265,7 +267,7 @@ class _AppsPageState extends State<AppsPage> {
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.delete_outline),
-                                  tooltip: 'Löschen',
+                                  tooltip: tr('delete'),
                                   onPressed:
                                       name.isEmpty ? null : () => _delete(name),
                                 ),

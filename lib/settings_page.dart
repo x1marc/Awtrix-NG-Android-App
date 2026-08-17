@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'api.dart';
 import 'color_picker.dart';
+import 'l10n.dart';
 import 'settings_catalog.dart';
 import 'widgets.dart';
 
@@ -44,8 +45,8 @@ class _SettingsPageState extends State<SettingsPage> {
       if (mounted) {
         setState(() {
           _loading = false;
-          _error = 'Einstellungen nicht erreichbar.\n'
-              'Ist die Uhr im WLAN? (${widget.device.host})';
+          _error =
+              trp('settings_unreachable', {'host': widget.device.host});
         });
       }
     }
@@ -96,14 +97,14 @@ class _SettingsPageState extends State<SettingsPage> {
     try {
       final r = await api.patchSettings(patch);
       if (r.statusCode >= 200 && r.statusCode < 300) {
-        snack(context, 'Gespeichert');
+        snack(context, tr('saved'));
         _gen++;
         await _load();
       } else {
-        snack(context, 'Uhr lehnte ab (${r.statusCode})');
+        snack(context, trp('rejected', {'code': '${r.statusCode}'}));
       }
     } catch (_) {
-      snack(context, 'Nicht erreichbar');
+      snack(context, tr('notReachableShort'));
     }
     if (mounted) setState(() => _saving = false);
   }
@@ -116,8 +117,8 @@ class _SettingsPageState extends State<SettingsPage> {
     switch (meta.kind) {
       case SKind.toggle:
         return SwitchListTile(
-          title: Text(meta.label),
-          subtitle: meta.help == null ? null : Text(meta.help!),
+          title: Text(catLabel(meta)),
+          subtitle: catHelp(meta) == null ? null : Text(catHelp(meta)!),
           value: v == true,
           onChanged: (nv) => _set(key, nv),
         );
@@ -125,7 +126,7 @@ class _SettingsPageState extends State<SettingsPage> {
         final cur = (v is num ? v : meta.min).toDouble();
         return ListTile(
           title: Row(children: [
-            Expanded(child: Text(meta.label)),
+            Expanded(child: Text(catLabel(meta))),
             Text('${cur.round()}${meta.unit ?? ''}',
                 style: const TextStyle(fontWeight: FontWeight.w600)),
           ]),
@@ -142,17 +143,18 @@ class _SettingsPageState extends State<SettingsPage> {
                 label: '${cur.round()}',
                 onChanged: (nv) => _set(key, nv.round()),
               ),
-              if (meta.help != null)
-                Text(meta.help!, style: Theme.of(context).textTheme.bodySmall),
+              if (catHelp(meta) != null)
+                Text(catHelp(meta)!,
+                    style: Theme.of(context).textTheme.bodySmall),
             ],
           ),
         );
       case SKind.dropdown:
-        final opts = meta.options!;
+        final opts = catOptions(meta)!;
         final value = opts.containsKey(v) ? v as String : null;
         return ListTile(
-          title: Text(meta.label),
-          subtitle: meta.help == null ? null : Text(meta.help!),
+          title: Text(catLabel(meta)),
+          subtitle: catHelp(meta) == null ? null : Text(catHelp(meta)!),
           trailing: DropdownButton<String>(
             value: value,
             hint: const Text('—'),
@@ -165,8 +167,8 @@ class _SettingsPageState extends State<SettingsPage> {
         );
       case SKind.number:
         return ListTile(
-          title: Text(meta.label),
-          subtitle: meta.help == null ? null : Text(meta.help!),
+          title: Text(catLabel(meta)),
+          subtitle: catHelp(meta) == null ? null : Text(catHelp(meta)!),
           trailing: SizedBox(
             width: 140,
             child: PlainField(
@@ -194,10 +196,11 @@ class _SettingsPageState extends State<SettingsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(meta.label, style: const TextStyle(fontSize: 16)),
-              if (meta.help != null) ...[
+              Text(catLabel(meta), style: const TextStyle(fontSize: 16)),
+              if (catHelp(meta) != null) ...[
                 const SizedBox(height: 2),
-                Text(meta.help!, style: Theme.of(context).textTheme.bodySmall),
+                Text(catHelp(meta)!,
+                    style: Theme.of(context).textTheme.bodySmall),
               ],
               const SizedBox(height: 8),
               PlainField(
@@ -215,8 +218,8 @@ class _SettingsPageState extends State<SettingsPage> {
     final v = _val(key);
     final isSet = v is String && v.isNotEmpty;
     return ListTile(
-      title: Text(meta.label),
-      subtitle: meta.help == null ? null : Text(meta.help!),
+      title: Text(catLabel(meta)),
+      subtitle: catHelp(meta) == null ? null : Text(catHelp(meta)!),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -343,12 +346,12 @@ class _SettingsPageState extends State<SettingsPage> {
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 10, 12, 2),
               child: TextField(
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   isDense: true,
                   filled: false,
-                  prefixIcon: Icon(Icons.search),
-                  hintText: 'Einstellung suchen…',
-                  border: OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.search),
+                  hintText: tr('search_setting'),
+                  border: const OutlineInputBorder(),
                 ),
                 onChanged: (t) => setState(() => _filter = t),
               ),
@@ -365,7 +368,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       child: CollapsibleSection(
                         initiallyExpanded: gi == 0,
                         forceExpanded: _filter.isNotEmpty ? true : null,
-                        title: Text(groupsInOrder[gi],
+                        title: Text(catGroup(groupsInOrder[gi]),
                             style: const TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 16)),
                         children: [
@@ -374,9 +377,9 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                     ),
                   if (groupsInOrder.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.all(24),
-                      child: Center(child: Text('Nichts gefunden.')),
+                    Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Center(child: Text(tr('nothing_here'))),
                     ),
                 ],
                 ),
@@ -395,8 +398,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
                 : const Icon(Icons.save),
             label: Text(_edited.isEmpty
-                ? 'Keine Änderung'
-                : 'Speichern (${_edited.length})'),
+                ? tr('no_change')
+                : trp('save_count', {'n': '${_edited.length}'})),
           ),
         ),
       ],

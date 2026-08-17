@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'api.dart';
 import 'color_picker.dart';
 import 'favorites.dart';
+import 'l10n.dart';
 import 'widgets.dart';
 
 /// Vollständiger Benachrichtigungs-Composer mit Effekten und Vorlagen.
@@ -66,10 +67,13 @@ class _NotifyPageState extends State<NotifyPage> {
     setState(() => _busy = true);
     try {
       final r = await api.sendNotification(_body());
-      snack(context,
-          (r.statusCode >= 200 && r.statusCode < 300) ? 'Gesendet' : 'Fehler ${r.statusCode}');
+      snack(
+          context,
+          (r.statusCode >= 200 && r.statusCode < 300)
+              ? tr('sent')
+              : trp('rejected', {'code': '${r.statusCode}'}));
     } catch (_) {
-      snack(context, 'Uhr nicht erreichbar');
+      snack(context, tr('notReachable'));
     }
     if (mounted) setState(() => _busy = false);
   }
@@ -114,7 +118,7 @@ class _NotifyPageState extends State<NotifyPage> {
   Future<void> _savePreset() async {
     final list = await FavStore.addNotifyPreset(_uiState());
     setState(() => _presets = list);
-    snack(context, 'Als Vorlage gespeichert');
+    snack(context, tr('saved_as_template'));
   }
 
   Future<void> _pickIcon() async {
@@ -132,7 +136,7 @@ class _NotifyPageState extends State<NotifyPage> {
     } catch (_) {}
     if (!mounted) return;
     if (names.isEmpty) {
-      snack(context, 'Keine Icons auf der Uhr gefunden');
+      snack(context, tr('no_icons_on_clock'));
       return;
     }
     final sel = await showModalBottomSheet<String>(
@@ -168,49 +172,51 @@ class _NotifyPageState extends State<NotifyPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Benachrichtigung')),
+      appBar: AppBar(title: Text(tr('notification'))),
       body: ListView(
         padding: const EdgeInsets.all(12),
         children: [
           if (_busy) const LinearProgressIndicator(minHeight: 2),
           SectionCard(
-            title: 'Inhalt',
+            title: tr('content'),
             icon: Icons.notifications,
             children: [
               TextField(
                 controller: _text,
-                decoration: const InputDecoration(
-                    labelText: 'Text', filled: false, border: OutlineInputBorder()),
+                decoration: InputDecoration(
+                    labelText: tr('text'),
+                    filled: false,
+                    border: const OutlineInputBorder()),
               ),
               const SizedBox(height: 10),
               Row(children: [
                 Expanded(
                   child: TextField(
                     controller: _icon,
-                    decoration: const InputDecoration(
-                        labelText: 'Icon (Name oder ID)',
+                    decoration: InputDecoration(
+                        labelText: tr('icon_name_or_id'),
                         filled: false,
-                        border: OutlineInputBorder()),
+                        border: const OutlineInputBorder()),
                   ),
                 ),
                 const SizedBox(width: 8),
                 OutlinedButton.icon(
                   onPressed: _pickIcon,
                   icon: const Icon(Icons.image_search, size: 18),
-                  label: const Text('Wählen'),
+                  label: Text(tr('choose')),
                 ),
               ]),
               const SizedBox(height: 10),
               Wrap(spacing: 6, runSpacing: 6, children: [
                 for (final e in kColors.entries)
                   ChoiceChip(
-                    label: Text(e.key),
+                    label: Text(colorLabel(e.key)),
                     selected: _color == e.value,
                     onSelected: (_) => setState(() => _color = e.value),
                   ),
                 ActionChip(
                   avatar: CircleAvatar(radius: 9, backgroundColor: rgb(_color)),
-                  label: const Text('Eigene…'),
+                  label: Text(tr('custom_dots')),
                   onPressed: () async {
                     final hex =
                         await pickColor(context, initialHex: colorToHex(rgb(_color)));
@@ -221,38 +227,52 @@ class _NotifyPageState extends State<NotifyPage> {
             ],
           ),
           SectionCard(
-            title: 'Effekte',
+            title: tr('effects'),
             icon: Icons.auto_awesome,
             children: [
-              _sw('Dauerhaft anzeigen (halten)', _hold, (v) => setState(() => _hold = v)),
-              _sw('Regenbogen-Text', _rainbow, (v) => setState(() => _rainbow = v)),
-              _sw('Blinken', _blink, (v) => setState(() => _blink = v)),
-              _sw('Ein-/Ausblenden', _fade, (v) => setState(() => _fade = v)),
-              _sw('Display aufwecken', _wakeup, (v) => setState(() => _wakeup = v)),
-              _sw('Stapeln (nacheinander)', _stack, (v) => setState(() => _stack = v)),
+              _sw(tr('eff_hold'), _hold, (v) => setState(() => _hold = v)),
+              _sw(tr('eff_rainbow'), _rainbow,
+                  (v) => setState(() => _rainbow = v)),
+              _sw(tr('eff_blink'), _blink, (v) => setState(() => _blink = v)),
+              _sw(tr('eff_fade'), _fade, (v) => setState(() => _fade = v)),
+              _sw(tr('eff_wakeup'), _wakeup,
+                  (v) => setState(() => _wakeup = v)),
+              _sw(tr('eff_stack'), _stack, (v) => setState(() => _stack = v)),
             ],
           ),
           SectionCard(
-            title: 'Feineinstellung',
+            title: tr('fine_tuning'),
             icon: Icons.tune,
             children: [
-              _sliderRow('Anzeigedauer',
-                  _duration == 0 ? 'Standard' : '${_duration.round()} s', _duration, 0, 60,
+              _sliderRow(
+                  tr('duration'),
+                  _duration == 0 ? tr('standard') : '${_duration.round()} s',
+                  _duration,
+                  0,
+                  60,
                   (v) => setState(() => _duration = v)),
-              _sliderRow('Scroll-Tempo',
-                  _scroll == 100 ? 'Standard' : '${_scroll.round()} %', _scroll, 10, 200,
+              _sliderRow(
+                  tr('scroll_speed'),
+                  _scroll == 100 ? tr('standard') : '${_scroll.round()} %',
+                  _scroll,
+                  10,
+                  200,
                   (v) => setState(() => _scroll = v)),
-              _sliderRow('Fortschrittsbalken',
-                  _progress < 0 ? 'aus' : '${_progress.round()} %', _progress, -1, 100,
+              _sliderRow(
+                  tr('progress_bar'),
+                  _progress < 0 ? tr('off') : '${_progress.round()} %',
+                  _progress,
+                  -1,
+                  100,
                   (v) => setState(() => _progress = v)),
               const SizedBox(height: 6),
               TextField(
                 controller: _sound,
-                decoration: const InputDecoration(
-                  labelText: 'Sound (RTTTL, optional)',
+                decoration: InputDecoration(
+                  labelText: tr('sound_rtttl'),
                   hintText: 'two_short:d=4,o=5,b=100:16e6,16e6',
                   filled: false,
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                 ),
               ),
             ],
@@ -263,7 +283,7 @@ class _NotifyPageState extends State<NotifyPage> {
               child: FilledButton.icon(
                 onPressed: _busy ? null : _send,
                 icon: const Icon(Icons.send),
-                label: const Text('Senden'),
+                label: Text(tr('send')),
               ),
             ),
             const SizedBox(width: 8),
@@ -273,28 +293,28 @@ class _NotifyPageState extends State<NotifyPage> {
                   : () async {
                       try {
                         await api.dismiss();
-                        snack(context, 'Verworfen');
+                        snack(context, tr('dismissed'));
                       } catch (_) {}
                     },
               icon: const Icon(Icons.clear),
-              label: const Text('Weg'),
+              label: Text(tr('weg')),
             ),
             const SizedBox(width: 8),
             OutlinedButton.icon(
               onPressed: _savePreset,
               icon: const Icon(Icons.bookmark_add_outlined),
-              label: const Text('Vorlage'),
+              label: Text(tr('template')),
             ),
           ]),
           if (_presets.isNotEmpty) ...[
             const SizedBox(height: 12),
-            const Text('Vorlagen',
-                style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(tr('templates'),
+                style: const TextStyle(fontWeight: FontWeight.bold)),
             for (var i = 0; i < _presets.length; i++)
               Card(
                 child: ListTile(
                   leading: const Icon(Icons.bookmark),
-                  title: Text('${_presets[i]['text'] ?? '(leer)'}'),
+                  title: Text('${_presets[i]['text'] ?? tr('empty')}'),
                   onTap: () => _loadPreset(_presets[i]),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete_outline),
