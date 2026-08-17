@@ -65,7 +65,7 @@ class _IconsPageState extends State<IconsPage> {
       if (bytes == null) {
         snack(context, 'Icon $id nicht gefunden');
       } else {
-        final r = await api.uploadFile('/ICONS', '$id.png', bytes);
+        final r = await uploadIcon(api, id, bytes);
         if (r.statusCode >= 200 && r.statusCode < 300) {
           snack(context, 'Icon $id gespeichert');
           _idC.clear();

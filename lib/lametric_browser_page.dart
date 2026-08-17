@@ -47,7 +47,7 @@ class _LametricBrowserPageState extends State<LametricBrowserPage> {
       if (bytes == null) {
         snack(context, 'Download fehlgeschlagen');
       } else {
-        final r = await api.uploadFile('/ICONS', '$id.png', bytes);
+        final r = await uploadIcon(api, id, bytes);
         if (r.statusCode >= 200 && r.statusCode < 300) {
           _done.add(id);
           snack(context, 'Icon $id auf die Uhr geladen');

@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart' show MediaType;
+import 'package:image/image.dart' as img;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Eine AWTRIX-NG-Uhr im Netzwerk (per IP/Hostname).
@@ -297,6 +299,32 @@ Future<List<int>?> fetchLametricIcon(String id) async {
     if (r.statusCode == 200 && r.bodyBytes.isNotEmpty) return r.bodyBytes;
   } catch (_) {}
   return null;
+}
+
+/// Lädt Icon-Bytes in einer von AWTRIX akzeptierten Form hoch. AWTRIX NG nimmt
+/// nur GIF/JPEG – PNG wird verlustfrei zu GIF gewandelt; GIF (animiert) bleibt.
+Future<http.Response> uploadIcon(
+    AwtrixApi api, String id, List<int> bytes) async {
+  bool sig(List<int> s) {
+    if (bytes.length < s.length) return false;
+    for (var i = 0; i < s.length; i++) {
+      if (bytes[i] != s[i]) return false;
+    }
+    return true;
+  }
+
+  if (sig([0x47, 0x49, 0x46])) {
+    return api.uploadFile('/ICONS', '$id.gif', bytes); // GIF (ggf. animiert)
+  }
+  if (sig([0xFF, 0xD8, 0xFF])) {
+    return api.uploadFile('/ICONS', '$id.jpg', bytes); // JPEG
+  }
+  // PNG o. Ä. -> verlustfrei zu GIF wandeln (ideal für 8x8-Icons).
+  final decoded = img.decodeImage(Uint8List.fromList(bytes));
+  if (decoded != null) {
+    return api.uploadFile('/ICONS', '$id.gif', img.encodeGif(decoded));
+  }
+  return api.uploadFile('/ICONS', '$id.png', bytes); // Fallback
 }
 
 /// Durchsucht die LaMetric-Icon-Galerie. Gibt [{id, name, thumb}] zurück
