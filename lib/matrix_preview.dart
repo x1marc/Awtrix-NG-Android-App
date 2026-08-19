@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import 'api.dart';
+import 'l10n.dart';
 
 /// Live-Vorschau des Uhr-Displays: pollt /display/screen in einer schnellen
 /// Schleife (~30 FPS) über eine Keep-Alive-Verbindung und zeichnet die Matrix
@@ -114,15 +115,15 @@ class _MatrixPreviewState extends State<MatrixPreview>
             Row(children: [
               const Icon(Icons.aspect_ratio, size: 18),
               const SizedBox(width: 8),
-              const Text('Live-Vorschau',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              Text(tr('live_preview'),
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(width: 8),
               if (_live)
                 Text('${_fps.toStringAsFixed(0)} FPS',
                     style: Theme.of(context).textTheme.bodySmall),
               const Spacer(),
               IconButton(
-                tooltip: _live ? 'Pause' : 'Live',
+                tooltip: _live ? tr('pause') : tr('live'),
                 icon: Icon(_live ? Icons.pause : Icons.play_arrow, size: 20),
                 onPressed: () => setState(() {
                   _live = !_live;
@@ -144,7 +145,9 @@ class _MatrixPreviewState extends State<MatrixPreview>
                     child: d == null
                         ? Center(
                             child: Text(
-                              _failed ? 'Vorschau nicht verfügbar' : 'lädt…',
+                              _failed
+                                  ? tr('preview_unavailable')
+                                  : tr('loading'),
                               style: const TextStyle(
                                   color: Colors.white54, fontSize: 12),
                             ),

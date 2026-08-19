@@ -294,6 +294,12 @@ const Map<String, String> _de = {
   'grp_audio': 'Audio',
   'grp_scripts': 'Skripte',
   'grp_other': 'Sonstiges',
+  // Live-Vorschau
+  'live_preview': 'Live-Vorschau',
+  'pause': 'Pause',
+  'live': 'Live',
+  'preview_unavailable': 'Vorschau nicht verfügbar',
+  'loading': 'lädt…',
 };
 
 const Map<String, String> _en = {
@@ -525,4 +531,9 @@ const Map<String, String> _en = {
   'grp_audio': 'Audio',
   'grp_scripts': 'Scripts',
   'grp_other': 'Other',
+  'live_preview': 'Live preview',
+  'pause': 'Pause',
+  'live': 'Live',
+  'preview_unavailable': 'Preview unavailable',
+  'loading': 'loading…',
 };
