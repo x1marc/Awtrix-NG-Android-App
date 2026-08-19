@@ -11,7 +11,7 @@ const List<Locale> kSupportedLocales = [Locale('de'), Locale('en')];
 Future<void> loadLocale() async {
   final p = await SharedPreferences.getInstance();
   final c = p.getString(_localeKey);
-  if (c == 'de' || c == 'en') localeNotifier.value = Locale(c);
+  if (c == 'de' || c == 'en') localeNotifier.value = Locale(c!);
 }
 
 Future<void> setLocale(Locale? l) async {
